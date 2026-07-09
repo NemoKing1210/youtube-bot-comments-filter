@@ -10,7 +10,7 @@
 // @name:ar           YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi           YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace         https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version           1.0.1
+// @version           1.0.2
 // @description       Hides or blurs bot comments on YouTube (nickname pattern detection) with a toggle in the comments sort panel. Multilingual UI.
 // @description:ru    Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с переключателем в панели сортировки. Мультиязычный UI.
 // @description:es    Oculta o difumina comentarios de bots en YouTube (detección por apodo) con un interruptor en el panel de ordenación. UI multilingüe.
@@ -67,51 +67,61 @@
         hide: '🤖 Bots: hidden',
         blur: '🤖 Bots: blurred',
         tooltip: 'Toggle bot-comment display mode (hide / blur)',
+        hiddenNotice: 'This comment was hidden by the bot filter.',
       },
       ru: {
         hide: '🤖 Боты: скрыты',
         blur: '🤖 Боты: размыты',
         tooltip: 'Переключить режим отображения бот-комментариев (скрыть / размыть)',
+        hiddenNotice: 'Этот комментарий скрыт фильтром ботов.',
       },
       es: {
         hide: '🤖 Bots: ocultos',
         blur: '🤖 Bots: difuminados',
         tooltip: 'Alternar el modo de visualización de comentarios de bots (ocultar / difuminar)',
+        hiddenNotice: 'Este comentario fue ocultado por el filtro de bots.',
       },
       fr: {
         hide: '🤖 Bots : masqués',
         blur: '🤖 Bots : flous',
         tooltip: "Basculer le mode d'affichage des commentaires de bots (masquer / flouter)",
+        hiddenNotice: 'Ce commentaire a été masqué par le filtre anti-bots.',
       },
       de: {
         hide: '🤖 Bots: ausgeblendet',
         blur: '🤖 Bots: unscharf',
         tooltip: 'Anzeigemodus für Bot-Kommentare umschalten (ausblenden / unscharf)',
+        hiddenNotice: 'Dieser Kommentar wurde vom Bot-Filter ausgeblendet.',
       },
       pt: {
         hide: '🤖 Bots: ocultos',
         blur: '🤖 Bots: desfocados',
         tooltip: 'Alternar o modo de exibição de comentários de bots (ocultar / desfocar)',
+        hiddenNotice: 'Este comentário foi ocultado pelo filtro de bots.',
       },
       zh: {
         hide: '🤖 机器人：已隐藏',
         blur: '🤖 机器人：已模糊',
         tooltip: '切换机器人评论的显示模式（隐藏 / 模糊）',
+        hiddenNotice: '此评论已被机器人过滤器隐藏。',
       },
       ja: {
         hide: '🤖 ボット：非表示',
         blur: '🤖 ボット：ぼかし',
         tooltip: 'ボットコメントの表示モードを切り替え（非表示 / ぼかし）',
+        hiddenNotice: 'このコメントはボットフィルターにより非表示にされました。',
       },
       ar: {
         hide: '🤖 الروبوتات: مخفية',
         blur: '🤖 الروبوتات: ضبابية',
         tooltip: 'تبديل طريقة عرض تعليقات الروبوتات (إخفاء / تمويه)',
+        hiddenNotice: 'تم إخفاء هذا التعليق بواسطة فلتر الروبوتات.',
       },
       hi: {
         hide: '🤖 बॉट: छिपे हुए',
         blur: '🤖 बॉट: धुंधले',
         tooltip: 'बॉट टिप्पणियों का प्रदर्शन मोड बदलें (छिपाएं / धुंधला करें)',
+        hiddenNotice: 'यह टिप्पणी बॉट फ़िल्टर द्वारा छिपाई गई थी।',
       },
     };
   
@@ -242,15 +252,31 @@
     /* =========================================================================
      *  4. CSS
      *
-     *  "hide" mode: the comment is fully removed from view.
+     *  "hide" mode: original comment body is replaced by a short notice.
      *  "blur" mode: the comment content is hidden/blurred by default and
      *  smoothly revealed only while hovering over the comment.
      * ========================================================================= */
-  
+
+    const HIDDEN_NOTICE_CLASS = 'ytbf-hidden-notice';
+
     const style = document.createElement('style');
     style.textContent = `
-      .ytbf-hidden { display: none !important; }
-  
+      .ytbf-hide-mode #main > :not(.${HIDDEN_NOTICE_CLASS}) {
+        display: none !important;
+      }
+      .ytbf-hide-mode:not(:has(#main)) > :not(.${HIDDEN_NOTICE_CLASS}) {
+        display: none !important;
+      }
+
+      .${HIDDEN_NOTICE_CLASS} {
+        display: block;
+        padding: 10px 0 6px;
+        font-size: 13px;
+        line-height: 1.4;
+        color: var(--yt-spec-text-secondary, #909090);
+        font-style: italic;
+      }
+
       .ytbf-blur {
         filter: blur(7px) grayscale(1);
         opacity: 0.35;
@@ -305,17 +331,51 @@
       return authorLink.textContent.trim();
     }
   
-    function modeToClass(mode) {
-      return mode === 'hide' ? 'ytbf-hidden' : 'ytbf-blur';
+    function getCommentHost(commentEl) {
+      return commentEl.querySelector('#main') || commentEl;
     }
-  
+
+    function ensureHiddenNotice(commentEl) {
+      const host = getCommentHost(commentEl);
+      let notice = host.querySelector(`.${HIDDEN_NOTICE_CLASS}`);
+      if (!notice) {
+        notice = document.createElement('div');
+        notice.className = HIDDEN_NOTICE_CLASS;
+        host.appendChild(notice);
+      }
+      notice.textContent = t('hiddenNotice');
+      return notice;
+    }
+
+    function removeHiddenNotice(commentEl) {
+      commentEl.querySelectorAll(`.${HIDDEN_NOTICE_CLASS}`).forEach((el) => el.remove());
+    }
+
+    function applyHideMode(commentEl) {
+      commentEl.classList.remove('ytbf-blur');
+      commentEl.classList.add('ytbf-hide-mode');
+      ensureHiddenNotice(commentEl);
+    }
+
+    function applyBlurMode(commentEl) {
+      commentEl.classList.remove('ytbf-hide-mode');
+      removeHiddenNotice(commentEl);
+      commentEl.classList.add('ytbf-blur');
+    }
+
     function applyModeClass(commentEl) {
-      commentEl.classList.remove('ytbf-hidden', 'ytbf-blur');
-      commentEl.classList.add(modeToClass(getMode()));
+      commentEl.classList.remove('ytbf-blur', 'ytbf-hide-mode');
+      removeHiddenNotice(commentEl);
+      if (getMode() === 'hide') {
+        applyHideMode(commentEl);
+      } else {
+        applyBlurMode(commentEl);
+      }
     }
-  
+
     function clearModeClass(commentEl) {
-      commentEl.classList.remove('ytbf-hidden', 'ytbf-blur');
+      commentEl.classList.remove('ytbf-blur', 'ytbf-hide-mode');
+      removeHiddenNotice(commentEl);
     }
   
     function processComment(commentEl) {

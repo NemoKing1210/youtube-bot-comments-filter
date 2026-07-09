@@ -10,7 +10,7 @@
 // @name:ar           YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi           YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace         https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version           1.0.2
+// @version           1.0.3
 // @description       Hides or blurs bot comments on YouTube (nickname pattern detection) with a toggle in the comments sort panel. Multilingual UI.
 // @description:ru    Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с переключателем в панели сортировки. Мультиязычный UI.
 // @description:es    Oculta o difumina comentarios de bots en YouTube (detección por apodo) con un interruptor en el panel de ordenación. UI multilingüe.
@@ -64,62 +64,62 @@
   
     const LOCALES = {
       en: {
-        hide: '🤖 Bots: hidden',
-        blur: '🤖 Bots: blurred',
+        hide: 'Bots: hidden',
+        blur: 'Bots: blurred',
         tooltip: 'Toggle bot-comment display mode (hide / blur)',
         hiddenNotice: 'This comment was hidden by the bot filter.',
       },
       ru: {
-        hide: '🤖 Боты: скрыты',
-        blur: '🤖 Боты: размыты',
+        hide: 'Боты: скрыты',
+        blur: 'Боты: размыты',
         tooltip: 'Переключить режим отображения бот-комментариев (скрыть / размыть)',
         hiddenNotice: 'Этот комментарий скрыт фильтром ботов.',
       },
       es: {
-        hide: '🤖 Bots: ocultos',
-        blur: '🤖 Bots: difuminados',
+        hide: 'Bots: ocultos',
+        blur: 'Bots: difuminados',
         tooltip: 'Alternar el modo de visualización de comentarios de bots (ocultar / difuminar)',
         hiddenNotice: 'Este comentario fue ocultado por el filtro de bots.',
       },
       fr: {
-        hide: '🤖 Bots : masqués',
-        blur: '🤖 Bots : flous',
+        hide: 'Bots : masqués',
+        blur: 'Bots : flous',
         tooltip: "Basculer le mode d'affichage des commentaires de bots (masquer / flouter)",
         hiddenNotice: 'Ce commentaire a été masqué par le filtre anti-bots.',
       },
       de: {
-        hide: '🤖 Bots: ausgeblendet',
-        blur: '🤖 Bots: unscharf',
+        hide: 'Bots: ausgeblendet',
+        blur: 'Bots: unscharf',
         tooltip: 'Anzeigemodus für Bot-Kommentare umschalten (ausblenden / unscharf)',
         hiddenNotice: 'Dieser Kommentar wurde vom Bot-Filter ausgeblendet.',
       },
       pt: {
-        hide: '🤖 Bots: ocultos',
-        blur: '🤖 Bots: desfocados',
+        hide: 'Bots: ocultos',
+        blur: 'Bots: desfocados',
         tooltip: 'Alternar o modo de exibição de comentários de bots (ocultar / desfocar)',
         hiddenNotice: 'Este comentário foi ocultado pelo filtro de bots.',
       },
       zh: {
-        hide: '🤖 机器人：已隐藏',
-        blur: '🤖 机器人：已模糊',
+        hide: '机器人：已隐藏',
+        blur: '机器人：已模糊',
         tooltip: '切换机器人评论的显示模式（隐藏 / 模糊）',
         hiddenNotice: '此评论已被机器人过滤器隐藏。',
       },
       ja: {
-        hide: '🤖 ボット：非表示',
-        blur: '🤖 ボット：ぼかし',
+        hide: 'ボット：非表示',
+        blur: 'ボット：ぼかし',
         tooltip: 'ボットコメントの表示モードを切り替え（非表示 / ぼかし）',
         hiddenNotice: 'このコメントはボットフィルターにより非表示にされました。',
       },
       ar: {
-        hide: '🤖 الروبوتات: مخفية',
-        blur: '🤖 الروبوتات: ضبابية',
+        hide: 'الروبوتات: مخفية',
+        blur: 'الروبوتات: ضبابية',
         tooltip: 'تبديل طريقة عرض تعليقات الروبوتات (إخفاء / تمويه)',
         hiddenNotice: 'تم إخفاء هذا التعليق بواسطة فلتر الروبوتات.',
       },
       hi: {
-        hide: '🤖 बॉट: छिपे हुए',
-        blur: '🤖 बॉट: धुंधले',
+        hide: 'बॉट: छिपे हुए',
+        blur: 'बॉट: धुंधले',
         tooltip: 'बॉट टिप्पणियों का प्रदर्शन मोड बदलें (छिपाएं / धुंधला करें)',
         hiddenNotice: 'यह टिप्पणी बॉट फ़िल्टर द्वारा छिपाई गई थी।',
       },
@@ -286,31 +286,77 @@
         filter: blur(0) grayscale(0);
         opacity: 1;
       }
-  
-      #ytbf-toggle-container {
-        display: flex;
+
+      #ytbf-toggle-wrap {
+        display: inline-flex;
+        align-items: center;
+        margin-inline-start: 8px;
+        vertical-align: middle;
+      }
+
+      ytd-comments-header-renderer #additional-section {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: nowrap;
+      }
+
+      #ytbf-toggle-wrap button.ytbf-toggle-btn {
+        display: inline-flex;
         align-items: center;
         gap: 6px;
-        margin-left: 12px;
-        padding: 6px 10px;
-        font-size: 13px;
-        line-height: 1;
-        color: var(--yt-spec-text-secondary, #909090);
-        background: var(--yt-spec-badge-chip-background, rgba(0,0,0,0.05));
-        border-radius: 16px;
+        min-height: 36px;
+        padding: 0 12px;
+        margin: 0;
+        border: none;
+        outline: none;
         cursor: pointer;
-        user-select: none;
-        white-space: nowrap;
-      }
-      #ytbf-toggle-container:hover {
+        appearance: none;
+        -webkit-appearance: none;
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: normal;
+        text-transform: none;
         color: var(--yt-spec-text-primary, #0f0f0f);
+        background: transparent;
+        border-radius: 18px;
+        -webkit-tap-highlight-color: transparent;
       }
-      #ytbf-toggle-container .ytbf-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: currentColor;
+
+      html[dark] #ytbf-toggle-wrap button.ytbf-toggle-btn,
+      html[darker-dark-theme] #ytbf-toggle-wrap button.ytbf-toggle-btn {
+        color: var(--yt-spec-text-primary, #f1f1f1);
+      }
+
+      #ytbf-toggle-wrap button.ytbf-toggle-btn:hover {
+        background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, 0.05));
+      }
+
+      html[dark] #ytbf-toggle-wrap button.ytbf-toggle-btn:hover,
+      html[darker-dark-theme] #ytbf-toggle-wrap button.ytbf-toggle-btn:hover {
+        background: var(--yt-spec-badge-chip-background, rgba(255, 255, 255, 0.1));
+      }
+
+      #ytbf-toggle-wrap button.ytbf-toggle-btn:focus-visible {
+        box-shadow: 0 0 0 2px var(--yt-spec-call-to-action-inverse, #065fd4);
+      }
+
+      #ytbf-toggle-wrap .ytbf-toggle-icon {
+        display: inline-flex;
+        width: 24px;
+        height: 24px;
         flex: 0 0 auto;
+        color: inherit;
+      }
+
+      #ytbf-toggle-wrap .ytbf-toggle-icon svg {
+        fill: currentColor;
+      }
+
+      #ytbf-toggle-wrap .ytbf-label {
+        white-space: nowrap;
+        line-height: 1.2;
+        color: inherit;
       }
     `;
     document.documentElement.appendChild(style);
@@ -407,48 +453,104 @@
      *  6. TOGGLE CONTROL INSIDE THE COMMENTS PANEL
      * ========================================================================= */
   
+    function createToggleIcon() {
+      const icon = document.createElement('span');
+      icon.className = 'yt-icon-shape style-scope yt-icon ytSpecIconShapeHost ytbf-toggle-icon';
+      icon.setAttribute('aria-hidden', 'true');
+
+      const shell = document.createElement('div');
+      shell.style.width = '100%';
+      shell.style.height = '100%';
+      shell.style.display = 'block';
+      shell.style.fill = 'currentcolor';
+
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('height', '24');
+      svg.setAttribute('viewBox', '0 0 24 24');
+      svg.setAttribute('width', '24');
+      svg.setAttribute('focusable', 'false');
+      svg.setAttribute('aria-hidden', 'true');
+      svg.style.pointerEvents = 'none';
+      svg.style.display = 'inherit';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute(
+        'd',
+        'M4.25 5.61C6.27 8.2 10 13 10 13v6c0 .55.45 1 1 1h2c.55 0 1-.45 1-1v-6s3.72-4.8 5.74-7.39C20.25 4.95 19.08 4 18 4H6c-1.08 0-2.25.95-1.75 1.61z',
+      );
+
+      svg.appendChild(path);
+      shell.appendChild(svg);
+      icon.appendChild(shell);
+      return icon;
+    }
+
     function labelForMode(mode) {
       return mode === 'hide' ? t('hide') : t('blur');
     }
-  
-    function updateToggleLabel(container) {
-      const label = container.querySelector('.ytbf-label');
-      if (label) label.textContent = labelForMode(getMode());
-    }
-  
-    function buildToggle() {
-      const container = document.createElement('div');
-      container.id = 'ytbf-toggle-container';
-      container.title = t('tooltip');
-  
-      const dot = document.createElement('span');
-      dot.className = 'ytbf-dot';
-  
-      const label = document.createElement('span');
-      label.className = 'ytbf-label';
-  
-      container.appendChild(dot);
-      container.appendChild(label);
-      updateToggleLabel(container);
-  
-      container.addEventListener('click', () => {
-        const next = getMode() === 'hide' ? 'blur' : 'hide';
-        setMode(next);
-        updateToggleLabel(container);
-        reapplyModeToFlaggedComments();
+
+    function updateToggleLabel() {
+      const text = labelForMode(getMode());
+      document.querySelectorAll('#ytbf-toggle-wrap').forEach((wrap) => {
+        const label = wrap.querySelector('.ytbf-label');
+        const button = wrap.querySelector('button.ytbf-toggle-btn');
+        if (label) label.textContent = text;
+        if (button) {
+          button.title = t('tooltip');
+          button.setAttribute('aria-label', text);
+        }
       });
-  
-      return container;
     }
-  
+
+    function toggleMode() {
+      const next = getMode() === 'hide' ? 'blur' : 'hide';
+      setMode(next);
+      updateToggleLabel();
+      reapplyModeToFlaggedComments();
+    }
+
+    function buildToggle() {
+      const wrap = document.createElement('span');
+      wrap.id = 'ytbf-toggle-wrap';
+      wrap.className = 'style-scope ytd-comments-header-renderer';
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'dropdown-trigger style-scope yt-dropdown-menu ytbf-toggle-btn';
+
+      const label = document.createElement('div');
+      label.className = 'style-scope yt-dropdown-menu ytbf-label';
+
+      button.appendChild(createToggleIcon());
+      button.appendChild(label);
+      wrap.appendChild(button);
+
+      button.addEventListener('click', toggleMode);
+
+      return wrap;
+    }
+
     function ensureToggleInserted() {
-      const header = document.querySelector('ytd-comments-header-renderer');
-      if (!header) return;
-      if (header.querySelector('#ytbf-toggle-container')) return;
-  
-      // The panel with the sort control ("Top comments / Newest") + panel button.
-      const additionalSection = header.querySelector('#additional-section') || header;
-      additionalSection.appendChild(buildToggle());
+      const additionalSection = document.querySelector('ytd-comments-header-renderer #additional-section');
+      if (!additionalSection) return;
+
+      if (additionalSection.querySelector('#ytbf-toggle-wrap')) {
+        updateToggleLabel();
+        return;
+      }
+
+      const sortMenu = additionalSection.querySelector('#sort-menu');
+      const toggle = buildToggle();
+
+      if (sortMenu) {
+        sortMenu.insertAdjacentElement('afterend', toggle);
+      } else {
+        additionalSection.appendChild(toggle);
+      }
+
+      updateToggleLabel();
     }
   
     /* =========================================================================
@@ -468,7 +570,7 @@
   
     const observer = new MutationObserver(() => scheduleTick());
     observer.observe(document.documentElement, { childList: true, subtree: true });
-  
+
     // Initial pass + safety-net interval in case a mutation is missed.
     scheduleTick();
     setInterval(scheduleTick, 2000);

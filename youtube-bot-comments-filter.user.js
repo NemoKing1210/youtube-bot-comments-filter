@@ -10,7 +10,7 @@
 // @name:ar           YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi           YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace         https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version           1.0.0
+// @version           1.0.1
 // @description       Hides or blurs bot comments on YouTube (nickname pattern detection) with a toggle in the comments sort panel. Multilingual UI.
 // @description:ru    Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с переключателем в панели сортировки. Мультиязычный UI.
 // @description:es    Oculta o difumina comentarios de bots en YouTube (detección por apodo) con un interruptor en el panel de ordenación. UI multilingüe.
@@ -142,6 +142,7 @@
     const EXACT_MATCHES = [
       'SAWS.PW',
       'TLES.TOP',
+      'FK59.TOP',
     ];
   
     // Common "junk" TLDs that spam bots stuff into their nickname like a domain.
@@ -155,9 +156,9 @@
     const RULES = [
       {
         name: 'domain-like-prefix',
-        // e.g. SAWS.PW__ or TLES.TOP-
+        // e.g. SAWS.PW__ or FK59.TOP_  (\b fails before _ — TLD must allow _/- suffix)
         weight: 3,
-        test: (name) => new RegExp(`^@?[A-Z0-9]{2,}\\.(${TLD_ALT})\\b`, 'i').test(name),
+        test: (name) => new RegExp(`^@?[A-Z0-9]{2,}\\.(${TLD_ALT})(?:[_-]|$|[^A-Za-z0-9])`, 'i').test(name),
       },
       {
         name: 'separator-right-after-tld',
@@ -169,7 +170,25 @@
         name: 'translit-spam-keywords',
         // transliterated spam phrases like "here on the site", "go to", "watch"
         weight: 3,
-        test: (name) => /(tyt[_-]?ha|na[_-]?caut|na[_-]?sait|saite|sayte|perehod|smotri|4ki[_-]?na|shtuki)/i.test(name),
+        test: (name) => /(tyt[_-]?ha|[_-]caut[_-]|^caut|na[_-]?caut|na[_-]?sait|saite|sayte|perehod|smotri|4ki[_-]?na|shtuki|haxodui|hodui[_-]?caut)/i.test(name),
+      },
+      {
+        name: 'alnum-digit-before-tld',
+        // e.g. FK59.TOP — letters+digits stuffed before a spam TLD
+        weight: 2,
+        test: (name) => new RegExp(`^@?[A-Z0-9]*\\d[A-Z0-9]*\\.(${TLD_ALT})`, 'i').test(name),
+      },
+      {
+        name: 'tld-then-translit-suffix',
+        // e.g. .TOP_Haxodui_caut_73 — domain TLD followed by translit spam tail
+        weight: 3,
+        test: (name) => new RegExp(`\\.(${TLD_ALT})_[A-Za-z0-9]*caut`, 'i').test(name),
+      },
+      {
+        name: 'trailing-numeric-suffix',
+        // e.g. _73, _05 at end of bot handles
+        weight: 1,
+        test: (name) => /[_-]\d{2,3}$/.test(name.trim()),
       },
       {
         name: 'many-underscores',

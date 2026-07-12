@@ -10,7 +10,7 @@
 // @name:ar           YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi           YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace         https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version           1.0.3
+// @version           1.1.0
 // @description       Hides or blurs bot comments on YouTube (nickname pattern detection) with a toggle in the comments sort panel. Multilingual UI.
 // @description:ru    Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с переключателем в панели сортировки. Мультиязычный UI.
 // @description:es    Oculta o difumina comentarios de bots en YouTube (detección por apodo) con un interruptor en el panel de ordenación. UI multilingüe.
@@ -59,7 +59,7 @@
      *  2. I18N — auto-detected from browser language, falls back to English
      *
      *  To add a new language: add a new key (ISO 639-1 code) to LOCALES
-     *  with the same three fields as the others.
+     *  with the same fields as the others.
      * ========================================================================= */
   
     const LOCALES = {
@@ -68,60 +68,80 @@
         blur: 'Bots: blurred',
         tooltip: 'Toggle bot-comment display mode (hide / blur)',
         hiddenNotice: 'This comment was hidden by the bot filter.',
+        botScore: 'Bot {n}%',
+        botScoreTooltip: 'Estimated probability this comment is from a bot',
       },
       ru: {
         hide: 'Боты: скрыты',
         blur: 'Боты: размыты',
         tooltip: 'Переключить режим отображения бот-комментариев (скрыть / размыть)',
         hiddenNotice: 'Этот комментарий скрыт фильтром ботов.',
+        botScore: 'Бот {n}%',
+        botScoreTooltip: 'Оценка вероятности, что комментарий от бота',
       },
       es: {
         hide: 'Bots: ocultos',
         blur: 'Bots: difuminados',
         tooltip: 'Alternar el modo de visualización de comentarios de bots (ocultar / difuminar)',
         hiddenNotice: 'Este comentario fue ocultado por el filtro de bots.',
+        botScore: 'Bot {n}%',
+        botScoreTooltip: 'Probabilidad estimada de que el comentario sea de un bot',
       },
       fr: {
         hide: 'Bots : masqués',
         blur: 'Bots : flous',
         tooltip: "Basculer le mode d'affichage des commentaires de bots (masquer / flouter)",
         hiddenNotice: 'Ce commentaire a été masqué par le filtre anti-bots.',
+        botScore: 'Bot {n}%',
+        botScoreTooltip: 'Probabilité estimée que le commentaire vienne d’un bot',
       },
       de: {
         hide: 'Bots: ausgeblendet',
         blur: 'Bots: unscharf',
         tooltip: 'Anzeigemodus für Bot-Kommentare umschalten (ausblenden / unscharf)',
         hiddenNotice: 'Dieser Kommentar wurde vom Bot-Filter ausgeblendet.',
+        botScore: 'Bot {n}%',
+        botScoreTooltip: 'Geschätzte Wahrscheinlichkeit, dass der Kommentar von einem Bot stammt',
       },
       pt: {
         hide: 'Bots: ocultos',
         blur: 'Bots: desfocados',
         tooltip: 'Alternar o modo de exibição de comentários de bots (ocultar / desfocar)',
         hiddenNotice: 'Este comentário foi ocultado pelo filtro de bots.',
+        botScore: 'Bot {n}%',
+        botScoreTooltip: 'Probabilidade estimada de o comentário ser de um bot',
       },
       zh: {
         hide: '机器人：已隐藏',
         blur: '机器人：已模糊',
         tooltip: '切换机器人评论的显示模式（隐藏 / 模糊）',
         hiddenNotice: '此评论已被机器人过滤器隐藏。',
+        botScore: '机器人 {n}%',
+        botScoreTooltip: '该评论来自机器人的估计概率',
       },
       ja: {
         hide: 'ボット：非表示',
         blur: 'ボット：ぼかし',
         tooltip: 'ボットコメントの表示モードを切り替え（非表示 / ぼかし）',
         hiddenNotice: 'このコメントはボットフィルターにより非表示にされました。',
+        botScore: 'ボット {n}%',
+        botScoreTooltip: 'ボットによるコメントである推定確率',
       },
       ar: {
         hide: 'الروبوتات: مخفية',
         blur: 'الروبوتات: ضبابية',
         tooltip: 'تبديل طريقة عرض تعليقات الروبوتات (إخفاء / تمويه)',
         hiddenNotice: 'تم إخفاء هذا التعليق بواسطة فلتر الروبوتات.',
+        botScore: 'روبوت {n}%',
+        botScoreTooltip: 'الاحتمال التقديري أن التعليق من روبوت',
       },
       hi: {
         hide: 'बॉट: छिपे हुए',
         blur: 'बॉट: धुंधले',
         tooltip: 'बॉट टिप्पणियों का प्रदर्शन मोड बदलें (छिपाएं / धुंधला करें)',
         hiddenNotice: 'यह टिप्पणी बॉट फ़िल्टर द्वारा छिपाई गई थी।',
+        botScore: 'बॉट {n}%',
+        botScoreTooltip: 'अनुमानित संभावना कि टिप्पणी बॉट की है',
       },
     };
   
@@ -224,6 +244,9 @@
     ];
   
     const THRESHOLD = 4;
+    // Soft score that maps to 100% confidence (threshold itself lands ~67%).
+    const PERCENT_SCORE_CAP = THRESHOLD + 2;
+    const SCORE_BADGE_MIN_PERCENT = 50;
   
     const BotDetector = {
       rules: RULES,
@@ -243,11 +266,25 @@
         }
         return { total, matched };
       },
+      confidencePercent(total) {
+        if (total <= 0) return 0;
+        return Math.min(100, Math.round((total / PERCENT_SCORE_CAP) * 100));
+      },
       isBot(name) {
         if (!name) return false;
         return this.score(name).total >= this.threshold;
       },
     };
+
+    function scoreLevel(percent) {
+      if (percent >= 85) return 'critical';
+      if (percent >= 70) return 'high';
+      return 'mid';
+    }
+
+    function formatBotScore(percent) {
+      return t('botScore').replace('{n}', String(percent));
+    }
   
     /* =========================================================================
      *  4. CSS
@@ -264,12 +301,15 @@
       .ytbf-hide-mode #main > :not(.${HIDDEN_NOTICE_CLASS}) {
         display: none !important;
       }
-      .ytbf-hide-mode:not(:has(#main)) > :not(.${HIDDEN_NOTICE_CLASS}) {
+      .ytbf-hide-mode:not(:has(#main)) > :not(.${HIDDEN_NOTICE_CLASS}):not(.ytbf-bot-score) {
         display: none !important;
       }
 
       .${HIDDEN_NOTICE_CLASS} {
-        display: block;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
         padding: 10px 0 6px;
         font-size: 13px;
         line-height: 1.4;
@@ -277,14 +317,96 @@
         font-style: italic;
       }
 
-      .ytbf-blur {
+      .${HIDDEN_NOTICE_CLASS} .ytbf-hidden-notice-text {
+        font-style: italic;
+      }
+
+      /* Blur comment body + nickname; keep only the score badge sharp. */
+      .ytbf-blur #author-thumbnail,
+      .ytbf-blur #author-text,
+      .ytbf-blur #name,
+      .ytbf-blur #published-time-text,
+      .ytbf-blur #sponsor-comment-badge,
+      .ytbf-blur #header-author > :not(.ytbf-bot-score),
+      .ytbf-blur #content-text,
+      .ytbf-blur #comment-content,
+      .ytbf-blur #expander,
+      .ytbf-blur #toolbar,
+      .ytbf-blur #action-buttons,
+      .ytbf-blur ytd-comment-engagement-bar,
+      .ytbf-blur #replies {
         filter: blur(7px) grayscale(1);
         opacity: 0.35;
         transition: filter 0.25s ease, opacity 0.25s ease;
       }
-      .ytbf-blur:hover {
+      .ytbf-blur:hover #author-thumbnail,
+      .ytbf-blur:hover #author-text,
+      .ytbf-blur:hover #name,
+      .ytbf-blur:hover #published-time-text,
+      .ytbf-blur:hover #sponsor-comment-badge,
+      .ytbf-blur:hover #header-author > :not(.ytbf-bot-score),
+      .ytbf-blur:hover #content-text,
+      .ytbf-blur:hover #comment-content,
+      .ytbf-blur:hover #expander,
+      .ytbf-blur:hover #toolbar,
+      .ytbf-blur:hover #action-buttons,
+      .ytbf-blur:hover ytd-comment-engagement-bar,
+      .ytbf-blur:hover #replies {
         filter: blur(0) grayscale(0);
         opacity: 1;
+      }
+
+      .ytbf-blur .ytbf-bot-score {
+        filter: none !important;
+        opacity: 1 !important;
+      }
+
+      .ytbf-bot-score {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        flex: 0 0 auto;
+        margin-inline-end: 6px;
+        padding: 2px 7px;
+        border-radius: 10px;
+        vertical-align: middle;
+        font-family: "Roboto", "Arial", sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1.2;
+        letter-spacing: 0.01em;
+        user-select: none;
+        background: var(--yt-spec-badge-chip-background, rgba(0, 0, 0, 0.06));
+        color: var(--ytbf-score-color, #e6a700);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--ytbf-score-color, #e6a700) 35%, transparent);
+      }
+
+      html[dark] .ytbf-bot-score,
+      html[darker-dark-theme] .ytbf-bot-score {
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .ytbf-bot-score[data-level="mid"] {
+        --ytbf-score-color: #c79100;
+      }
+      .ytbf-bot-score[data-level="high"] {
+        --ytbf-score-color: #e07000;
+      }
+      .ytbf-bot-score[data-level="critical"] {
+        --ytbf-score-color: #e53935;
+      }
+
+      .ytbf-bot-score-dot {
+        width: 8px;
+        height: 8px;
+        flex: 0 0 auto;
+        border-radius: 50%;
+        background: var(--ytbf-score-color, #e6a700);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--ytbf-score-color, #e6a700) 25%, transparent);
+      }
+
+      .ytbf-bot-score-label {
+        white-space: nowrap;
       }
 
       #ytbf-toggle-wrap {
@@ -389,12 +511,72 @@
         notice.className = HIDDEN_NOTICE_CLASS;
         host.appendChild(notice);
       }
-      notice.textContent = t('hiddenNotice');
+
+      let text = notice.querySelector('.ytbf-hidden-notice-text');
+      if (!text) {
+        text = document.createElement('span');
+        text.className = 'ytbf-hidden-notice-text';
+        notice.appendChild(text);
+      }
+      text.textContent = t('hiddenNotice');
       return notice;
     }
 
     function removeHiddenNotice(commentEl) {
       commentEl.querySelectorAll(`.${HIDDEN_NOTICE_CLASS}`).forEach((el) => el.remove());
+    }
+
+    function getScoreBadgeAnchor(commentEl) {
+      if (commentEl.classList.contains('ytbf-hide-mode')) {
+        const notice = ensureHiddenNotice(commentEl);
+        const text = notice.querySelector('.ytbf-hidden-notice-text');
+        return { parent: notice, before: text };
+      }
+
+      const authorText = commentEl.querySelector('#author-text');
+      if (authorText && authorText.parentElement) {
+        return { parent: authorText.parentElement, before: authorText };
+      }
+      const headerAuthor = commentEl.querySelector('#header-author');
+      if (headerAuthor) {
+        return { parent: headerAuthor, before: headerAuthor.firstChild };
+      }
+      return { parent: commentEl, before: commentEl.firstChild };
+    }
+
+    function ensureScoreBadge(commentEl, percent) {
+      const { parent, before } = getScoreBadgeAnchor(commentEl);
+
+      let badge = commentEl.querySelector('.ytbf-bot-score');
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'ytbf-bot-score';
+        badge.setAttribute('role', 'status');
+
+        const dot = document.createElement('span');
+        dot.className = 'ytbf-bot-score-dot';
+        dot.setAttribute('aria-hidden', 'true');
+
+        const label = document.createElement('span');
+        label.className = 'ytbf-bot-score-label';
+
+        badge.append(dot, label);
+      }
+
+      if (badge.parentElement !== parent || badge.nextSibling !== before) {
+        parent.insertBefore(badge, before);
+      }
+
+      badge.dataset.level = scoreLevel(percent);
+      badge.title = t('botScoreTooltip');
+      badge.setAttribute('aria-label', formatBotScore(percent));
+
+      const label = badge.querySelector('.ytbf-bot-score-label');
+      if (label) label.textContent = formatBotScore(percent);
+    }
+
+    function removeScoreBadge(commentEl) {
+      commentEl.querySelectorAll('.ytbf-bot-score').forEach((el) => el.remove());
     }
 
     function applyHideMode(commentEl) {
@@ -426,15 +608,24 @@
   
     function processComment(commentEl) {
       const author = getAuthorName(commentEl);
-      const bot = BotDetector.isBot(author);
+      const { total } = BotDetector.score(author);
+      const bot = total >= BotDetector.threshold;
+      const percent = BotDetector.confidencePercent(total);
   
       commentEl.setAttribute(PROCESSED_ATTR, '1');
       commentEl.dataset.ytbfBot = bot ? '1' : '0';
-  
+      commentEl.dataset.ytbfPercent = String(percent);
+
       if (bot) {
         applyModeClass(commentEl);
       } else {
         clearModeClass(commentEl);
+      }
+
+      if (percent > SCORE_BADGE_MIN_PERCENT) {
+        ensureScoreBadge(commentEl, percent);
+      } else {
+        removeScoreBadge(commentEl);
       }
     }
   
@@ -446,7 +637,15 @@
     // Re-apply the current display mode to already-flagged bot comments —
     // used when the user toggles the mode, no re-detection needed.
     function reapplyModeToFlaggedComments() {
-      document.querySelectorAll(`${COMMENT_SELECTOR}[data-ytbf-bot="1"]`).forEach(applyModeClass);
+      document.querySelectorAll(`${COMMENT_SELECTOR}[data-ytbf-bot="1"]`).forEach((commentEl) => {
+        applyModeClass(commentEl);
+        const percent = Number(commentEl.dataset.ytbfPercent) || 0;
+        if (percent > SCORE_BADGE_MIN_PERCENT) {
+          ensureScoreBadge(commentEl, percent);
+        } else {
+          removeScoreBadge(commentEl);
+        }
+      });
     }
   
     /* =========================================================================

@@ -10,7 +10,7 @@
 // @name:ar           YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi           YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace         https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version           1.0.3
+// @version           1.1.0
 // @description       Hides or blurs bot comments on YouTube (nickname pattern detection) with a toggle in the comments sort panel. Multilingual UI.
 // @description:ru    Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с переключателем в панели сортировки. Мультиязычный UI.
 // @description:es    Oculta o difumina comentarios de bots en YouTube (detección por apodo) con un interruptor en el panel de ordenación. UI multilingüe.

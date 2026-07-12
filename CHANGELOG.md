@@ -5,6 +5,17 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-07-13
+
+### Added
+
+- Bot confidence badge on comments when estimated probability is above 50% (colored indicator: amber / orange / red)
+- Localized badge labels and tooltips for all supported UI languages
+
+### Changed
+
+- Blur mode keeps the score badge readable while nickname and comment body stay blurred until hover
+
 ## [1.0.3] - 2026-07-10
 
 ### Changed
@@ -47,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic comment processing for YouTube SPA via `MutationObserver` and periodic rescan
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.1.0]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.1.0
 [1.0.3]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.0.3
 [1.0.2]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.0.2
 [1.0.1]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.0.1

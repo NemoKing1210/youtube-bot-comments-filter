@@ -30,7 +30,7 @@
 // @updateURL          https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js
 // @downloadURL        https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js
 // @license            MIT
-// @icon               https://www.youtube.com/s/desktop/favicon_48x48.png
+// @icon               https://www.youtube.com/s/desktop/0715bbf9/img/favicon_96x96.png
 // @match              https://www.youtube.com/*
 // @grant              GM_getValue
 // @grant              GM_setValue

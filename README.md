@@ -1,12 +1,13 @@
 # YouTube Bot Comments Filter
 
+[![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Install userscript](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
 
-A userscript for YouTube that detects spam bot comments by nickname pattern and hides or blurs them. A compact toggle in the comments sort panel lets you switch between **hide** and **blur** modes without opening any settings page.
+A userscript for YouTube that detects spam bot comments by nickname pattern and hides or blurs them. Settings live in the YouTube account (avatar) menu — open **Bot filter** and choose **hide** or **blur**.
 
-Compatible with [Tampermonkey](https://www.tampermonkey.net/), [Violentmonkey](https://violentmonkey.github.io/), [Greasemonkey](https://www.greasespot.net/), ScriptCat, and other managers that support the `// ==UserScript==` metadata block.
+Compatible with [Tampermonkey](https://www.tampermonkey.net/), [Violentmonkey](https://violentmonkey.github.io/), [Greasemonkey](https://www.greasespot.net/), [ScriptCat](https://scriptcat.org/), and other managers that support the `// ==UserScript==` metadata block.
 
 ## Quick install
 
@@ -28,36 +29,37 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 | Tampermonkey | Dashboard → **Utilities** → **Install from URL** |
 | Violentmonkey | Dashboard → **+** → **Install from URL** |
 | Greasemonkey | Add-on menu → **New User Script** → paste the raw URL |
+| ScriptCat | Install the [extension](https://scriptcat.org/) and use the GitHub raw URL |
 
 Paste the [install URL](#quick-install) above.
 
 ### Manual install
 
-1. Open [`youtube-bot-comments-filter.user.js`](youtube-bot-comments-filter.user.js) in this repository.
+1. Open the built [`youtube-bot-comments-filter.user.js`](youtube-bot-comments-filter.user.js) in this repository (or run `npm run build` after cloning).
 2. Copy the entire file contents.
 3. In your userscript manager, create a new script and paste the code.
 4. Save and enable the script.
 
 ## Updates
 
-The script includes `@updateURL` and `@downloadURL` metadata pointing to the raw GitHub file. Supported managers check for updates automatically (Tampermonkey: Dashboard → check interval; Violentmonkey: similar).
+The script includes `@updateURL` and `@downloadURL` metadata pointing to the raw GitHub file. Supported managers check for updates automatically.
 
 **To release a new version:**
 
-1. Bump `@version` in `youtube-bot-comments-filter.user.js` and `youtube-bot-comments-filter.meta.js`.
-2. Add an entry to [`CHANGELOG.md`](CHANGELOG.md).
-3. Push to `main` (or create a GitHub Release).
-
-Managers compare the installed `@version` with the remote metadata to decide whether to offer an update.
+1. Bump `version` in [`package.json`](package.json).
+2. Run `npm run build` (regenerates root `youtube-bot-comments-filter.user.js` / `.meta.js`).
+3. Add an entry to [`CHANGELOG.md`](CHANGELOG.md).
+4. Push to `main` (or create a GitHub Release).
 
 ## Features
 
 - **Bot detection by nickname** — weighted rule engine scores commenter display names (e.g. `@SAWS.PW__TyT_Ha_CauT_05`)
-- **Hide mode** — bot comments are fully removed from the layout (`display: none`)
+- **Hide mode** — bot comment body is replaced by a localized placeholder notice
 - **Blur mode** — bot comments stay in place but are blurred and dimmed; hover to reveal
-- **In-panel toggle** — chip next to the sort controls (`Top comments` / `Newest first`) switches modes with one click
+- **Account-menu settings** — entry in the avatar menu with hide/blur options and a toggle for the bot % badge
+- **Confidence badge** — estimated bot probability when above 50% (amber / orange / red); can be turned off in settings
 - **Persistent preference** — selected mode is saved between sessions
-- **YouTube-like styling** — toggle uses YouTube CSS variables for light/dark theme compatibility
+- **YouTube-like styling** — uses YouTube CSS variables for light/dark theme compatibility
 - **10 UI languages** — English, Russian, Spanish, French, German, Portuguese, Chinese, Japanese, Arabic, Hindi (detected from browser locale)
 
 ## Supported pages
@@ -72,10 +74,10 @@ Works on watch pages, Shorts with comments, and any YouTube view that renders th
 
 | Mode | Behavior |
 |------|----------|
-| **Hide** (default) | Bot comments are not visible; layout collapses as if they were removed |
+| **Hide** (default) | Comment body is replaced by a short notice; layout stays stable |
 | **Blur** | Bot comments appear blurred, grayscale, and semi-transparent; full content shows on hover |
 
-Click the toggle chip in the comments header to switch modes. The label updates immediately (`🤖 Bots: hidden` ↔ `🤖 Bots: blurred`).
+Open your avatar menu → **Bot filter** → choose a mode. The subtitle under the menu entry shows the current mode.
 
 ## How it works
 
@@ -86,7 +88,7 @@ YouTube page loads
 MutationObserver + periodic rescan (SPA-safe)
        │
        ▼
-Insert toggle chip into comments header (#additional-section)
+Ensure account-menu settings entry when the avatar menu opens
        │
        ▼
 For each new comment (ytd-comment-view-model / ytd-comment-renderer)
@@ -99,7 +101,7 @@ Run BotDetector rules → sum weights
        │
        ├── score < threshold ──► leave comment unchanged
        │
-       └── score ≥ threshold ──► apply .ytbf-hidden or .ytbf-blur
+       └── score ≥ threshold ──► apply hide notice or blur
 ```
 
 ### Bot detection
@@ -120,7 +122,7 @@ Built-in signals include:
 
 Spam TLDs checked: `PW`, `TOP`, `XYZ`, `ONLINE`, `SITE`, `CLUB`, `WIN`, `CC`, `ICU`, `VIP`, and others commonly abused in bot nicknames.
 
-To extend detection, edit `EXACT_MATCHES` or push new objects into the `RULES` array near the top of `youtube-bot-comments-filter.user.js`.
+To extend detection, edit `EXACT_MATCHES` / `SPAM_TLDS` in [`src/constants.js`](src/constants.js) or push new objects into `RULES` in [`src/detection/bot-detector.js`](src/detection/bot-detector.js).
 
 ### Dynamic content
 
@@ -130,27 +132,39 @@ YouTube loads comments asynchronously (infinite scroll, replies, navigation with
 
 ```text
 youtube-bot-comments-filter/
-├── youtube-bot-comments-filter.user.js   # Installable userscript (canonical distribution file)
-├── youtube-bot-comments-filter.meta.js   # Metadata-only companion for faster update checks
-├── README.md                               # Documentation and install instructions
-├── CHANGELOG.md                            # Version history
-├── LICENSE                                 # MIT license
-└── .gitattributes                          # GitHub linguist overrides
+├── src/                                      # Source (edit here)
+│   ├── main.js
+│   ├── constants.js
+│   ├── settings.js
+│   ├── i18n/
+│   ├── detection/
+│   ├── styles/
+│   └── features/
+├── scripts/                                  # Build helpers
+├── youtube-bot-comments-filter.user.js       # Built installable userscript
+├── youtube-bot-comments-filter.meta.js       # Built metadata-only mirror
+├── package.json
+├── vite.config.js
+├── README.md
+├── CHANGELOG.md
+└── LICENSE
 ```
 
 | File | Purpose |
 |------|---------|
-| `youtube-bot-comments-filter.user.js` | Full script served at `@downloadURL` / `@updateURL` |
-| `youtube-bot-comments-filter.meta.js` | Lightweight metadata mirror; managers may fetch it instead of the full script when checking for updates |
+| `src/` | Editable source modules |
+| `youtube-bot-comments-filter.user.js` | Built script served at `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.meta.js` | Lightweight metadata mirror for update checks |
+| `vite.config.js` | Userscript metadata + Vite / monkey config |
 
 ## Script metadata
 
-Key `// ==UserScript==` fields used by managers:
+Key `// ==UserScript==` fields (generated from `vite.config.js` + `package.json`):
 
 | Field | Value |
 |-------|-------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
-| `@version` | Semantic version (must be bumped on every release) |
+| `@version` | From `package.json` |
 | `@updateURL` / `@downloadURL` | Raw GitHub URL of `youtube-bot-comments-filter.user.js` |
 | `@homepageURL` | This repository |
 | `@supportURL` | GitHub Issues |
@@ -165,36 +179,42 @@ Localized `@name` and `@description` tags are provided for en, ru, es, fr, de, p
 | Grant | Purpose |
 |-------|---------|
 | `GM_getValue` / `GM_setValue` | Persist hide/blur mode preference between sessions |
+| `GM_addStyle` | Inject filter / menu CSS (auto-granted by the Vite build) |
 
 No network requests are made. The script only reads the DOM and applies CSS classes.
 
 ## Development
 
-### Local workflow (Violentmonkey)
+Requires [Node.js](https://nodejs.org/) 20+ (npm).
 
-1. Clone this repository.
-2. In Violentmonkey, install from the local `youtube-bot-comments-filter.user.js` file.
-3. Enable **Track local file** before closing the install dialog.
-4. Edit the file in your IDE — changes apply after a page reload.
+```bash
+npm install
+npm run dev      # Vite serve — open/install the generated "dev:" userscript
+npm run build    # Production → dist/ + copy to repo root
+npm run ci       # Same checks as GitHub Actions (build + verify artifacts)
+```
 
-### Local workflow (Tampermonkey)
+Edit files under [`src/`](src/) (entry: [`src/main.js`](src/main.js)). Userscript metadata (`@match`, localized names, …) lives in [`vite.config.js`](vite.config.js). Version is `package.json` → header `@version` and in-script `SCRIPT_VERSION`.
 
-Tampermonkey does not track local files natively. Options:
+After changes that should ship, run `npm run build` and commit the regenerated root `.user.js` / `.meta.js`. Pull requests run [CI](.github/workflows/ci.yml), which fails if those files are out of date.
 
-- Reinstall from URL after each change, or
-- Use a local HTTP server and temporarily point `@updateURL` / `@downloadURL` to `http://localhost:...` during development (do not commit local URLs).
+### Local workflow notes
+
+- **`npm run dev`:** vite-plugin-monkey serves an installable userscript (name prefixed with `dev:`). Install it once in Tampermonkey, Violentmonkey, or ScriptCat; HMR applies while the server runs.
+- **Built file:** after `npm run build`, you can also install the root `youtube-bot-comments-filter.user.js` (Violentmonkey **Track local file** still works on that artifact).
+- Do not commit localhost `@updateURL` / `@downloadURL` values.
 
 ### Configuration
 
-Constants near the top of `youtube-bot-comments-filter.user.js` can be adjusted:
-
-| Constant | Default | Description |
-|----------|---------|-------------|
-| `STORAGE_KEY_MODE` | `ytbf_mode` | Storage key for display mode |
-| `DEFAULT_MODE` | `hide` | Initial mode when no preference is saved |
-| `THRESHOLD` | 4 | Minimum bot score to flag a comment |
-| `EXACT_MATCHES` | `SAWS.PW`, `TLES.TOP` | Substrings that instantly flag a nickname |
-| Safety rescan interval | 2000 ms | Fallback timer if a mutation is missed |
+| Constant | Default | Location | Description |
+|----------|---------|----------|-------------|
+| `STORAGE_KEY_MODE` | `ytbf_mode` | `src/constants.js` | Storage key for display mode |
+| `DEFAULT_MODE` | `hide` | `src/constants.js` | Initial mode when no preference is saved |
+| `STORAGE_KEY_SHOW_SCORE` | `ytbf_show_score` | `src/constants.js` | Storage key for bot % badge visibility |
+| `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | Show confidence badges by default |
+| `THRESHOLD` | 4 | `src/constants.js` | Minimum bot score to flag a comment |
+| `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Substrings that instantly flag a nickname |
+| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Fallback timer if a mutation is missed |
 
 ## Disclaimer
 

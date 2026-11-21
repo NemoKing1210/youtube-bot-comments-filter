@@ -1,5 +1,7 @@
 # YouTube Bot Comments Filter
 
+**English** · [Русский](README.ru.md) · [Español](README.es.md) · [Français](README.fr.md) · [Deutsch](README.de.md) · [Português (Brasil)](README.pt.md) · [中文（简体）](README.zh.md) · [日本語](README.ja.md) · [العربية](README.ar.md) · [हिन्दी](README.hi.md)
+
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Install userscript](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
@@ -146,7 +148,10 @@ youtube-bot-comments-filter/
 ├── package.json
 ├── vite.config.js
 ├── README.md
+├── README.<lang>.md                          # Translations (ru, es, fr, de, pt, zh, ja, ar, hi)
 ├── CHANGELOG.md
+├── CONTRIBUTING.md                           # Setup, conventions, PR checklist
+├── SECURITY.md                               # Vulnerability reporting policy
 └── LICENSE
 ```
 
@@ -215,6 +220,14 @@ After changes that should ship, run `npm run build` and commit the regenerated r
 | `THRESHOLD` | 4 | `src/constants.js` | Minimum bot score to flag a comment |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Substrings that instantly flag a nickname |
 | `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Fallback timer if a mutation is missed |
+
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for local
+setup, coding conventions, and the pull-request checklist.
+
+To report a security issue, follow [SECURITY.md](SECURITY.md) — please do not
+open a public issue for vulnerabilities.
 
 ## Disclaimer
 

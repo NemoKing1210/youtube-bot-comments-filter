@@ -42,8 +42,11 @@ youtube-bot-comments-filter/
 ├── youtube-bot-comments-filter.meta.js   # Built metadata-only mirror
 ├── package.json
 ├── vite.config.js
-├── README.md
+├── README.md                   # English README (canonical)
+├── README.<lang>.md            # Translations: ru, es, fr, de, pt, zh, ja, ar, hi
 ├── CHANGELOG.md
+├── CONTRIBUTING.md             # Setup, conventions, PR checklist
+├── SECURITY.md                 # Vulnerability reporting policy
 ├── LICENSE
 ├── AGENTS.md                   # This file (cross-tool agent instructions)
 └── CLAUDE.md                   # Claude Code entry → imports AGENTS.md
@@ -91,6 +94,7 @@ UI locales: `en`, `ru`, `es`, `fr`, `de`, `pt`, `zh`, `ja`, `ar`, `hi` (browser 
 
 - Add every new user-facing string to **all** `LOCALES` entries in `i18n/locales.js`.
 - Keep localized `@name` / `@description` in `vite.config.js` aligned when changing the product description.
+- README translations live in `README.<lang>.md` (`ru`, `es`, `fr`, `de`, `pt`, `zh`, `ja`, `ar`, `hi`); English `README.md` is canonical. Keep the language switcher, code blocks, URLs and tables aligned across versions.
 
 ## Do not
 

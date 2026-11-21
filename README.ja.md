@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![ユーザースクリプトをインストール](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![ライセンス: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![バージョン](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![バージョン](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 YouTube のスパムボットコメントをニックネームのパターンで検出し、非表示またはぼかしにするユーザースクリプトです。設定は YouTube のアカウント（アバター）メニューにあります。**ボットフィルター** を開き、**非表示** または **ぼかし** を選択してください。
 
@@ -46,7 +46,7 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 
 ## 更新
 
-スクリプトには GitHub の raw ファイルを指す `@updateURL` と `@downloadURL` メタデータが含まれています。対応マネージャーは自動的に更新を確認します。
+スクリプトには `@updateURL`（軽量な `.meta.js`）と `@downloadURL`（完全な `.user.js`）のメタデータが含まれています。対応マネージャーは自動的に更新を確認します。
 
 **新しいバージョンをリリースするには：**
 
@@ -119,6 +119,9 @@ BotDetector ルールを実行 → 重みを合計
 | スパム TLD を含むドメイン風プレフィックス | 3 | `@SAWS.PW__...`、`@TLES.TOP-...` |
 | TLD 直後の区切り文字 | 2 | `.PW__`、`.TOP-` |
 | 音訳されたスパムキーワード | 3 | `tyt_ha`、`na_caut`、`smotri`、`4ki_na` |
+| スパム TLD 前の英字と数字 | 2 | `FK59.TOP` |
+| TLD に続く音訳スパム末尾 | 3 | `.TOP_Haxodui_caut_73` |
+| 末尾の数字サフィックス | 1 | `_73`、`_05` |
 | 多数のアンダースコア | 1 | 名前に `_` が 3 つ以上 |
 | 単語内の leetspeak 数字 | 1 | `Sy4ki`、`CauT0` |
 | ドット付きの大文字プレフィックス | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ BotDetector ルールを実行 → 重みを合計
 
 ### 動的コンテンツ
 
-YouTube はコメントを非同期で読み込みます（無限スクロール、返信、リロードなしのナビゲーション）。`document.documentElement` の `MutationObserver` が `requestAnimationFrame` 経由でデバウンスされた処理をスケジュールします。2 秒の安全インターバルが取りこぼした変更を捕捉します。
+YouTube はコメントを非同期で読み込みます（無限スクロール、返信、リロードなしのナビゲーション）。`document.documentElement` の `MutationObserver` は新しく追加されたコメントのサブツリーだけを処理し、`yt-navigate-finish` リスナーが SPA ナビゲーション後に全体パスを実行します。5 秒の安全インターバルがオブザーバーで捉えられない変更を補います。
 
 ## リポジトリ構成
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # ユニットテスト（node:test）
+├── assets/
+│   └── icon.svg                              # ユーザースクリプトのアイコン
 ├── scripts/                                  # ビルド補助スクリプト
 ├── youtube-bot-comments-filter.user.js       # ビルド済みのインストール可能なユーザースクリプト
 ├── youtube-bot-comments-filter.meta.js       # ビルド済みのメタデータのみのミラー
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | ファイル | 目的 |
 |----------|------|
 | `src/` | 編集可能なソースモジュール |
-| `youtube-bot-comments-filter.user.js` | `@downloadURL` / `@updateURL` で配信されるビルド済みスクリプト |
+| `youtube-bot-comments-filter.user.js` | `@downloadURL` で配信されるビルド済みインストール可能スクリプト |
 | `youtube-bot-comments-filter.meta.js` | 更新確認用の軽量メタデータミラー |
 | `vite.config.js` | ユーザースクリプトのメタデータ + Vite / monkey 設定 |
 
@@ -172,7 +178,7 @@ youtube-bot-comments-filter/
 |------------|-----|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | `package.json` から |
-| `@updateURL` / `@downloadURL` | `youtube-bot-comments-filter.user.js` の GitHub raw URL |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | このリポジトリ |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ en、ru、es、fr、de、pt-BR、zh-CN、ja、ar、hi 向けにローカライ�
 
 ```bash
 npm install
+npm test         # ユニットテスト（node:test）
 npm run dev      # Vite サーバー — 生成された「dev:」ユーザースクリプトを開く/インストール
 npm run build    # 本番ビルド → dist/ + リポジトリルートへコピー
 npm run ci       # GitHub Actions と同じチェック（ビルド + 成果物の検証）
 ```
 
-[`src/`](src/) 配下のファイルを編集します（エントリポイント：[`src/main.js`](src/main.js)）。ユーザースクリプトのメタデータ（`@match`、ローカライズ名など）は [`vite.config.js`](vite.config.js) にあります。バージョンは `package.json` の `@version` ヘッダーとスクリプト内の `SCRIPT_VERSION` に反映されます。
+[`src/`](src/) 配下のファイルを編集します（エントリポイント：[`src/main.js`](src/main.js)）。ユーザースクリプトのメタデータ（`@match`、ローカライズ名など）は [`vite.config.js`](vite.config.js) にあります。バージョンは `package.json` の `@version` ヘッダーに反映されます。
 
 リリース対象の変更後は `npm run build` を実行し、再生成されたルートの `.user.js` / `.meta.js` をコミットしてください。Pull Request では [CI](.github/workflows/ci.yml) が実行され、これらのファイルが古いと失敗します。
 
@@ -221,7 +228,7 @@ npm run ci       # GitHub Actions と同じチェック（ビルド + 成果物�
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | 信頼度バッジをデフォルトで表示 |
 | `THRESHOLD` | 4 | `src/constants.js` | コメントをボットとしてマークする最小スコア |
 | `EXACT_MATCHES` | `SAWS.PW`、… | `src/constants.js` | ニックネームを即座にマークする部分文字列 |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | 変更を取りこぼした場合の予備タイマー |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | 変更を取りこぼした場合の予備タイマー |
 
 ## コントリビューション
 

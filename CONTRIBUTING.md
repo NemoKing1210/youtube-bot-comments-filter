@@ -92,12 +92,13 @@ without discussing it in an issue first.
   threshold is `THRESHOLD = 4`.
 - Prefer weighted heuristics over brittle catch-all regexes. A rule that flags
   normal usernames is worse than a missed bot.
+- Add a regression fixture to `test/bot-detector.test.js` and run `npm test`.
 - Test against real-looking normal nicknames as well as spam examples.
 
 ## Localization
 
 The UI ships in `en`, `ru`, `es`, `fr`, `de`, `pt`, `zh`, `ja`, `ar`, `hi`
-(browser locale, English fallback).
+(YouTube UI language, then browser locale; English fallback).
 
 - Add every new user-facing string to **all** `LOCALES` entries in
   [`src/i18n/locales.js`](src/i18n/locales.js).
@@ -107,12 +108,14 @@ The UI ships in `en`, `ru`, `es`, `fr`, `de`, `pt`, `zh`, `ja`, `ar`, `hi`
 ## Build and verification
 
 ```bash
+npm test                 # Unit tests (node:test)
 npm run dev              # Vite dev server + HMR
 npm run build            # Build dist/ and copy artifacts to repo root
-npm run ci               # Exactly what GitHub Actions runs
+npm run ci               # Tests + build + verify (exactly what GitHub Actions runs)
 npm run verify:artifacts -- --git   # Also require committed artifacts to match HEAD
 ```
 
+- `npm test` covers the detection rules, settings cache and language resolution.
 - `npm run build` must be run before committing when source or metadata
   changes. CI fails if the committed root artifacts are stale.
 - `npm run ci` locally checks `dist/` ↔ root consistency; add `--git` (or set
@@ -124,6 +127,7 @@ npm run verify:artifacts -- --git   # Also require committed artifacts to match 
 - [ ] `npm run build` was run and the regenerated root
       `youtube-bot-comments-filter.user.js` / `.meta.js` are committed
       (when the change affects the shipped script)
+- [ ] `npm test` passes
 - [ ] `npm run ci` passes
 - [ ] New user-facing strings exist in all supported locales
 - [ ] README translations (`README.<lang>.md`) updated when user-visible docs change — English `README.md` stays canonical
@@ -142,7 +146,7 @@ appreciated but not enforced.
 When shipping a user-visible change:
 
 1. Bump `version` in [`package.json`](package.json) — it is the single source
-   of truth for `@version` and `SCRIPT_VERSION`.
+   of truth for `@version`.
 2. Run `npm run build`.
 3. Add a [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) entry under a
    new version heading in [`CHANGELOG.md`](CHANGELOG.md).

@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Instalar userscript](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![Licença: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Versão](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Versão](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Um userscript para o YouTube que detecta comentários de bots de spam pelo padrão do apelido e os oculta ou desfoca. As configurações ficam no menu da conta (avatar) do YouTube: abra **Filtro de bots** e escolha **Ocultar** ou **Desfocar**.
 
@@ -46,7 +46,7 @@ Cole a [URL de instalação](#instalação-rápida) acima.
 
 ## Atualizações
 
-O script inclui metadados `@updateURL` e `@downloadURL` que apontam para o arquivo raw do GitHub. Os gerenciadores compatíveis verificam atualizações automaticamente.
+O script inclui metadados `@updateURL` (o `.meta.js` leve) e `@downloadURL` (o `.user.js` completo). Os gerenciadores compatíveis verificam atualizações automaticamente.
 
 **Para publicar uma nova versão:**
 
@@ -119,6 +119,9 @@ Sinais integrados:
 | Prefixo semelhante a domínio com TLD de spam | 3 | `@SAWS.PW__...`, `@TLES.TOP-...` |
 | Separador logo após o TLD | 2 | `.PW__`, `.TOP-` |
 | Palavras-chave de spam transliteradas | 3 | `tyt_ha`, `na_caut`, `smotri`, `4ki_na` |
+| Letras e dígitos antes de um TLD de spam | 2 | `FK59.TOP` |
+| TLD seguido de uma cauda de spam transliterada | 3 | `.TOP_Haxodui_caut_73` |
+| Sufixo numérico final | 1 | `_73`, `_05` |
 | Muitos sublinhados | 1 | três ou mais `_` no nome |
 | Dígito leetspeak na palavra | 1 | `Sy4ki`, `CauT0` |
 | Prefixo em maiúsculas com ponto | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ Para ampliar a detecção, edite `EXACT_MATCHES` / `SPAM_TLDS` em [`src/constant
 
 ### Conteúdo dinâmico
 
-O YouTube carrega comentários de forma assíncrona (rolagem infinita, respostas, navegação sem recarregar a página). Um `MutationObserver` em `document.documentElement` agenda passagens adiadas via `requestAnimationFrame`. Um intervalo de segurança de 2 segundos captura mutações perdidas.
+O YouTube carrega comentários de forma assíncrona (rolagem infinita, respostas, navegação sem recarregar a página). Um `MutationObserver` em `document.documentElement` processa apenas as subárvores de comentários recém-adicionadas, e um listener `yt-navigate-finish` dispara uma passagem completa após navegação SPA. Um intervalo de segurança de 5 segundos captura o que o observador não vê.
 
 ## Estrutura do repositório
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # Testes unitários (node:test)
+├── assets/
+│   └── icon.svg                              # Ícone do userscript
 ├── scripts/                                  # Utilitários de build
 ├── youtube-bot-comments-filter.user.js       # Userscript compilado e instalável
 ├── youtube-bot-comments-filter.meta.js       # Espelho compilado apenas de metadados
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | Arquivo | Finalidade |
 |---------|------------|
 | `src/` | Módulos-fonte editáveis |
-| `youtube-bot-comments-filter.user.js` | Script compilado servido em `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.user.js` | Script compilado e instalável servido em `@downloadURL` |
 | `youtube-bot-comments-filter.meta.js` | Espelho leve de metadados para verificações de atualização |
 | `vite.config.js` | Metadados do userscript + configuração do Vite / monkey |
 
@@ -172,7 +178,7 @@ Campos principais de `// ==UserScript==` (gerados a partir de `vite.config.js` +
 |-------|-------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | De `package.json` |
-| `@updateURL` / `@downloadURL` | URL raw do GitHub do arquivo `youtube-bot-comments-filter.user.js` |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | Este repositório |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ Requer [Node.js](https://nodejs.org/) 20+ (npm).
 
 ```bash
 npm install
+npm test         # Testes unitários (node:test)
 npm run dev      # Vite serve — abra/instale o userscript gerado "dev:"
 npm run build    # Produção → dist/ + cópia para a raiz do repositório
 npm run ci       # As mesmas verificações do GitHub Actions (build + verificação de artefatos)
 ```
 
-Edite os arquivos em [`src/`](src/) (ponto de entrada: [`src/main.js`](src/main.js)). Os metadados do userscript (`@match`, nomes localizados, …) ficam em [`vite.config.js`](vite.config.js). A versão vem de `package.json` → `@version` no cabeçalho e `SCRIPT_VERSION` no script.
+Edite os arquivos em [`src/`](src/) (ponto de entrada: [`src/main.js`](src/main.js)). Os metadados do userscript (`@match`, nomes localizados, …) ficam em [`vite.config.js`](vite.config.js). A versão vem de `package.json` → `@version` no cabeçalho.
 
 Após mudanças que devem ser publicadas, execute `npm run build` e faça commit dos arquivos raiz `.user.js` / `.meta.js` regenerados. Os pull requests executam o [CI](.github/workflows/ci.yml), que falha se esses arquivos estiverem desatualizados.
 
@@ -221,7 +228,7 @@ Após mudanças que devem ser publicadas, execute `npm run build` e faça commit
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | Mostrar selos de confiança por padrão |
 | `THRESHOLD` | 4 | `src/constants.js` | Pontuação mínima de bot para sinalizar um comentário |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Substrings que sinalizam um apelido imediatamente |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Temporizador de reserva para mutações perdidas |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | Temporizador de reserva para mutações perdidas |
 
 ## Contribuindo
 

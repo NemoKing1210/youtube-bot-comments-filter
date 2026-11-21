@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![تثبيت سكربت المستخدم](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![الترخيص: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![الإصدار](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![الإصدار](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 سكربت مستخدم لـ YouTube يكتشف تعليقات روبوتات السبام بناءً على نمط الاسم المعروض ويخفيها أو يموّهها. توجد الإعدادات في قائمة حساب YouTube (الصورة الرمزية): افتح **فلتر الروبوتات** واختر **إخفاء** أو **تمويه**.
 
@@ -46,7 +46,7 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 
 ## التحديثات
 
-يتضمن السكربت بيانات `@updateURL` و`@downloadURL` التي تشير إلى ملف raw على GitHub. تتحقق المديرون المدعومون من التحديثات تلقائيًا.
+يتضمن السكربت بيانات `@updateURL` (ملف `.meta.js` الخفيف) و`@downloadURL` (ملف `.user.js` الكامل). تتحقق المديرون المدعومون من التحديثات تلقائيًا.
 
 **لإصدار نسخة جديدة:**
 
@@ -119,6 +119,9 @@ MutationObserver + إعادة فحص دورية (آمنة مع SPA)
 | بادئة شبيهة بالنطاق مع TLD سبام | 3 | `@SAWS.PW__...`، `@TLES.TOP-...` |
 | فاصل مباشرة بعد TLD | 2 | `.PW__`، `.TOP-` |
 | كلمات سبام منقحرة | 3 | `tyt_ha`، `na_caut`، `smotri`، `4ki_na` |
+| حروف وأرقام قبل TLD سبام | 2 | `FK59.TOP` |
+| TLD يتبعه ذيل سبام منقحر | 3 | `.TOP_Haxodui_caut_73` |
+| لاحقة رقمية في النهاية | 1 | `_73`، `_05` |
 | شرطات سفلية كثيرة | 1 | ثلاث `_` أو أكثر في الاسم |
 | رقم leetspeak داخل كلمة | 1 | `Sy4ki`، `CauT0` |
 | بادئة بأحرف كبيرة مع نقطة | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ TLDs السبام التي يتم فحصها: `PW` و`TOP` و`XYZ` و`ONLINE` و
 
 ### المحتوى الديناميكي
 
-يحمّل YouTube التعليقات بشكل غير متزامن (تمرير لا نهائي، ردود، تنقل دون إعادة تحميل كاملة). يرتّب `MutationObserver` على `document.documentElement` عمليات مؤجلة عبر `requestAnimationFrame`. يلتقط مؤقت أمان كل ثانيتين أي تغييرات فائتة.
+يحمّل YouTube التعليقات بشكل غير متزامن (تمرير لا نهائي، ردود، تنقل دون إعادة تحميل كاملة). يعالج `MutationObserver` على `document.documentElement` أشجار التعليقات المضافة حديثًا فقط، ويطلق مستمع `yt-navigate-finish` مرورًا كاملًا بعد تنقل SPA. يلتقط مؤقت أمان كل 5 ثوانٍ ما لا يراه المراقب.
 
 ## هيكل المستودع
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # اختبارات الوحدة (node:test)
+├── assets/
+│   └── icon.svg                              # أيقونة سكربت المستخدم
 ├── scripts/                                  # سكربتات مساعدة للبناء
 ├── youtube-bot-comments-filter.user.js       # سكربت المستخدم المبني والقابل للتثبيت
 ├── youtube-bot-comments-filter.meta.js       # مرآة البيانات الوصفية المبنية
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | الملف | الغرض |
 |-------|-------|
 | `src/` | وحدات المصدر القابلة للتحرير |
-| `youtube-bot-comments-filter.user.js` | السكربت المبني الذي يُقدَّم عبر `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.user.js` | السكربت المبني القابل للتثبيت الذي يُقدَّم عبر `@downloadURL` |
 | `youtube-bot-comments-filter.meta.js` | مرآة خفيفة للبيانات الوصفية لفحص التحديثات |
 | `vite.config.js` | بيانات السكربت الوصفية + إعداد Vite / monkey |
 
@@ -172,7 +178,7 @@ youtube-bot-comments-filter/
 |-------|--------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | من `package.json` |
-| `@updateURL` / `@downloadURL` | رابط raw من GitHub لملف `youtube-bot-comments-filter.user.js` |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | هذا المستودع |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ youtube-bot-comments-filter/
 
 ```bash
 npm install
+npm test         # اختبارات الوحدة (node:test)
 npm run dev      # خادم Vite — افتح/ثبّت سكربت المستخدم المُنشأ "dev:"
 npm run build    # إنتاج → dist/ + نسخ إلى جذر المستودع
 npm run ci       # نفس فحوص GitHub Actions (البناء + التحقق من المخرجات)
 ```
 
-حرّر الملفات ضمن [`src/`](src/) (نقطة الدخول: [`src/main.js`](src/main.js)). توجد بيانات السكربت الوصفية (`@match` والأسماء المترجمة …) في [`vite.config.js`](vite.config.js). يأتي الإصدار من `package.json` → `@version` في الترويسة و`SCRIPT_VERSION` في السكربت.
+حرّر الملفات ضمن [`src/`](src/) (نقطة الدخول: [`src/main.js`](src/main.js)). توجد بيانات السكربت الوصفية (`@match` والأسماء المترجمة …) في [`vite.config.js`](vite.config.js). يأتي الإصدار من `package.json` → `@version` في الترويسة.
 
 بعد التغييرات التي يجب نشرها، نفّذ `npm run build` وأضف ملفات الجذر `.user.js` / `.meta.js` المُعاد إنشاؤها إلى الالتزام. تشغّل طلبات السحب [CI](.github/workflows/ci.yml)، وتفشل إذا كانت هذه الملفات قديمة.
 
@@ -221,7 +228,7 @@ npm run ci       # نفس فحوص GitHub Actions (البناء + التحقق �
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | إظهار شارات الثقة افتراضيًا |
 | `THRESHOLD` | 4 | `src/constants.js` | الحد الأدنى لنقاط الروبوت لتعليم التعليق |
 | `EXACT_MATCHES` | `SAWS.PW`، … | `src/constants.js` | سلاسل فرعية تعلّم الاسم فورًا |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | مؤقت احتياطي عند فقدان تغيير |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | مؤقت احتياطي عند فقدان تغيير |
 
 ## المساهمة
 

@@ -72,6 +72,7 @@ const diff = runGit([
   'diff',
   '--exit-code',
   '--stat',
+  'HEAD',
   '--',
   ...ARTIFACT_FILES,
 ]);

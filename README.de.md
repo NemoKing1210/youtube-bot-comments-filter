@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Userscript installieren](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![Lizenz: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Ein Userscript für YouTube, das Spam-Bot-Kommentare anhand des Nickname-Musters erkennt und sie ausblendet oder unscharf macht. Die Einstellungen liegen im YouTube-Konto- (Avatar-)Menü: Öffne **Bot-Filter** und wähle **Ausblenden** oder **Unscharf**.
 
@@ -46,7 +46,7 @@ Füge die [Installations-URL](#schnellinstallation) von oben ein.
 
 ## Updates
 
-Das Skript enthält `@updateURL`- und `@downloadURL`-Metadaten, die auf die GitHub-Raw-Datei zeigen. Unterstützte Manager prüfen automatisch auf Updates.
+Das Skript enthält `@updateURL`- (die leichte `.meta.js`) und `@downloadURL`-Metadaten (die vollständige `.user.js`). Unterstützte Manager prüfen automatisch auf Updates.
 
 **So veröffentlichst du eine neue Version:**
 
@@ -119,6 +119,9 @@ Eingebaute Signale:
 | Domänenartiges Präfix mit Spam-TLD | 3 | `@SAWS.PW__...`, `@TLES.TOP-...` |
 | Trennzeichen direkt nach der TLD | 2 | `.PW__`, `.TOP-` |
 | Transliterierte Spam-Schlüsselwörter | 3 | `tyt_ha`, `na_caut`, `smotri`, `4ki_na` |
+| Buchstaben und Ziffern vor einer Spam-TLD | 2 | `FK59.TOP` |
+| TLD mit transliteriertem Spam-Anhang | 3 | `.TOP_Haxodui_caut_73` |
+| Abschließendes numerisches Suffix | 1 | `_73`, `_05` |
 | Viele Unterstriche | 1 | drei oder mehr `_` im Namen |
 | Leetspeak-Ziffer im Wort | 1 | `Sy4ki`, `CauT0` |
 | Großbuchstaben-Präfix mit Punkt | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ Um die Erkennung zu erweitern, bearbeite `EXACT_MATCHES` / `SPAM_TLDS` in [`src/
 
 ### Dynamische Inhalte
 
-YouTube lädt Kommentare asynchron (Endlos-Scrollen, Antworten, Navigation ohne vollständiges Neuladen). Ein `MutationObserver` auf `document.documentElement` plant verzögerte Durchläufe über `requestAnimationFrame`. Ein Sicherheitsintervall von 2 Sekunden fängt verpasste Mutationen ab.
+YouTube lädt Kommentare asynchron (Endlos-Scrollen, Antworten, Navigation ohne vollständiges Neuladen). Ein `MutationObserver` auf `document.documentElement` verarbeitet nur neu hinzugefügte Kommentar-Teilbäume, und ein `yt-navigate-finish`-Listener löst nach SPA-Navigation einen vollständigen Durchlauf aus. Ein Sicherheitsintervall von 5 Sekunden fängt ab, was der Observer nicht sieht.
 
 ## Repository-Struktur
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # Unit-Tests (node:test)
+├── assets/
+│   └── icon.svg                              # Userscript-Icon
 ├── scripts/                                  # Build-Hilfsskripte
 ├── youtube-bot-comments-filter.user.js       # Gebautes installierbares Userscript
 ├── youtube-bot-comments-filter.meta.js       # Gebauter Metadaten-Spiegel
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | Datei | Zweck |
 |-------|-------|
 | `src/` | Bearbeitbare Quellmodule |
-| `youtube-bot-comments-filter.user.js` | Gebautes Skript, ausgeliefert unter `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.user.js` | Gebautes installierbares Skript, ausgeliefert unter `@downloadURL` |
 | `youtube-bot-comments-filter.meta.js` | Leichter Metadaten-Spiegel für Update-Prüfungen |
 | `vite.config.js` | Userscript-Metadaten + Vite-/Monkey-Konfiguration |
 
@@ -172,7 +178,7 @@ Wichtige Felder von `// ==UserScript==` (generiert aus `vite.config.js` + `packa
 |------|------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | Aus `package.json` |
-| `@updateURL` / `@downloadURL` | GitHub-Raw-URL der Datei `youtube-bot-comments-filter.user.js` |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | Dieses Repository |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ Erfordert [Node.js](https://nodejs.org/) 20+ (npm).
 
 ```bash
 npm install
+npm test         # Unit-Tests (node:test)
 npm run dev      # Vite serve – das generierte „dev:“-Userscript öffnen/installieren
 npm run build    # Produktion → dist/ + Kopie ins Repository-Root
 npm run ci       # Dieselben Prüfungen wie GitHub Actions (Build + Artefakt-Verifikation)
 ```
 
-Bearbeite Dateien unter [`src/`](src/) (Einstiegspunkt: [`src/main.js`](src/main.js)). Userscript-Metadaten (`@match`, lokalisierte Namen, …) liegen in [`vite.config.js`](vite.config.js). Die Version stammt aus `package.json` → `@version` im Header und `SCRIPT_VERSION` im Skript.
+Bearbeite Dateien unter [`src/`](src/) (Einstiegspunkt: [`src/main.js`](src/main.js)). Userscript-Metadaten (`@match`, lokalisierte Namen, …) liegen in [`vite.config.js`](vite.config.js). Die Version stammt aus `package.json` → `@version` im Header.
 
 Nach Änderungen, die ausgeliefert werden sollen, führe `npm run build` aus und committe die neu erzeugten Root-Dateien `.user.js` / `.meta.js`. In Pull Requests läuft [CI](.github/workflows/ci.yml), das fehlschlägt, wenn diese Dateien veraltet sind.
 
@@ -221,7 +228,7 @@ Nach Änderungen, die ausgeliefert werden sollen, führe `npm run build` aus und
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | Konfidenz-Badges standardmäßig anzeigen |
 | `THRESHOLD` | 4 | `src/constants.js` | Mindest-Bot-Score zum Markieren eines Kommentars |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Teilstrings, die einen Nickname sofort markieren |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Ersatz-Timer für verpasste Mutationen |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | Ersatz-Timer für verpasste Mutationen |
 
 ## Mitwirken
 

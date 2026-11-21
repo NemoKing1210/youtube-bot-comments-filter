@@ -5,6 +5,36 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-11-22
+
+### Added
+
+- Unit tests for the detection engine, settings cache and language resolution (`npm test`, `node:test`), run in CI
+- Repository-owned userscript icon (`assets/icon.svg`)
+
+### Changed
+
+- Detection regexes are compiled once instead of per rule call; scoring no longer allocates a match list on the hot path
+- New comments are processed from added DOM subtrees; a full pass runs on `yt-navigate-finish` and a 5-second safety interval (was 2 s)
+- Settings are cached in memory instead of reading `GM_getValue` for every comment
+- Account menu split into focused modules; the entry uses `role="menuitem"` with `aria-expanded`; the submenu stays open after choosing a mode
+- UI language is taken from YouTube's `<html lang>` first, then the browser locale
+- `@updateURL` now points to the lightweight `.meta.js`
+- Blur styles respect `prefers-reduced-motion`
+
+### Fixed
+
+- Comments whose `#author-text` was not rendered yet are retried instead of being permanently skipped
+- Reused comment elements are re-scored when their author changes
+- Non-boolean stored badge values no longer enable the badge
+- Unknown stored modes fall back to `hide`
+- The menu entry is placed above the last section when YouTube's UI language is not in the built-in list
+- Artifact freshness check now compares against `HEAD`
+
+### Removed
+
+- Dead `SCRIPT_VERSION`, `BotDetector.isBot`, unused `tooltip` locale strings and the `data-ytbf-processed` attribute
+
 ## [1.3.0] - 2026-07-20
 
 ### Added
@@ -72,6 +102,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dynamic comment processing for YouTube SPA via `MutationObserver` and periodic rescan
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.3.1]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.3.1
+[1.3.0]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.3.0
+[1.2.0]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.2.0
 [1.1.0]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.1.0
 [1.0.3]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.0.3
 [1.0.2]: https://github.com/NemoKing1210/youtube-bot-comments-filter/releases/tag/v1.0.2

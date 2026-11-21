@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![安装用户脚本](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![许可证：MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![版本](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 一个 YouTube 用户脚本，通过昵称模式识别垃圾机器人评论，并将其隐藏或模糊。设置位于 YouTube 账号（头像）菜单中：打开 **机器人过滤器**，选择 **隐藏** 或 **模糊**。
 
@@ -46,7 +46,7 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 
 ## 更新
 
-脚本包含指向 GitHub raw 文件的 `@updateURL` 和 `@downloadURL` 元数据。受支持的管理器会自动检查更新。
+脚本包含 `@updateURL`（轻量 `.meta.js`）和 `@downloadURL`（完整 `.user.js`）元数据。受支持的管理器会自动检查更新。
 
 **发布新版本：**
 
@@ -119,6 +119,9 @@ MutationObserver + 定期重新扫描（兼容 SPA）
 | 带垃圾 TLD 的类域名前缀 | 3 | `@SAWS.PW__...`、`@TLES.TOP-...` |
 | TLD 后紧跟分隔符 | 2 | `.PW__`、`.TOP-` |
 | 音译垃圾关键词 | 3 | `tyt_ha`、`na_caut`、`smotri`、`4ki_na` |
+| 垃圾 TLD 前的字母和数字 | 2 | `FK59.TOP` |
+| TLD 后跟音译垃圾后缀 | 3 | `.TOP_Haxodui_caut_73` |
+| 末尾数字后缀 | 1 | `_73`、`_05` |
 | 大量下划线 | 1 | 名称中有三个或更多 `_` |
 | 单词中的 leetspeak 数字 | 1 | `Sy4ki`、`CauT0` |
 | 带点的大写前缀 | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ MutationObserver + 定期重新扫描（兼容 SPA）
 
 ### 动态内容
 
-YouTube 异步加载评论（无限滚动、回复、无刷新导航）。`document.documentElement` 上的 `MutationObserver` 通过 `requestAnimationFrame` 调度防抖处理。2 秒的安全定时器会捕获遗漏的 DOM 变更。
+YouTube 异步加载评论（无限滚动、回复、无刷新导航）。`document.documentElement` 上的 `MutationObserver` 仅处理新增的评论子树，`yt-navigate-finish` 监听器会在 SPA 导航后触发完整扫描。5 秒的安全定时器会捕获观察器看不到的变更。
 
 ## 仓库结构
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # 单元测试（node:test）
+├── assets/
+│   └── icon.svg                              # 用户脚本图标
 ├── scripts/                                  # 构建辅助脚本
 ├── youtube-bot-comments-filter.user.js       # 构建好的可安装用户脚本
 ├── youtube-bot-comments-filter.meta.js       # 构建好的纯元数据镜像
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | 文件 | 用途 |
 |------|------|
 | `src/` | 可编辑的源代码模块 |
-| `youtube-bot-comments-filter.user.js` | 通过 `@downloadURL` / `@updateURL` 提供的构建脚本 |
+| `youtube-bot-comments-filter.user.js` | 通过 `@downloadURL` 提供的可安装构建脚本 |
 | `youtube-bot-comments-filter.meta.js` | 用于更新检查的轻量元数据镜像 |
 | `vite.config.js` | 用户脚本元数据 + Vite / monkey 配置 |
 
@@ -172,7 +178,7 @@ youtube-bot-comments-filter/
 |------|-----|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | 来自 `package.json` |
-| `@updateURL` / `@downloadURL` | `youtube-bot-comments-filter.user.js` 的 GitHub raw URL |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | 本仓库 |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ youtube-bot-comments-filter/
 
 ```bash
 npm install
+npm test         # 单元测试（node:test）
 npm run dev      # Vite 开发服务器——打开/安装生成的 "dev:" 用户脚本
 npm run build    # 生产构建 → dist/ + 复制到仓库根目录
 npm run ci       # 与 GitHub Actions 相同的检查（构建 + 验证构建产物）
 ```
 
-编辑 [`src/`](src/) 下的文件（入口：[`src/main.js`](src/main.js)）。用户脚本元数据（`@match`、本地化名称等）位于 [`vite.config.js`](vite.config.js)。版本来自 `package.json` → 头部的 `@version` 和脚本内的 `SCRIPT_VERSION`。
+编辑 [`src/`](src/) 下的文件（入口：[`src/main.js`](src/main.js)）。用户脚本元数据（`@match`、本地化名称等）位于 [`vite.config.js`](vite.config.js)。版本来自 `package.json` → 头部的 `@version`。
 
 对于需要发布的更改，运行 `npm run build` 并提交重新生成的根目录 `.user.js` / `.meta.js`。Pull Request 会运行 [CI](.github/workflows/ci.yml)，如果这些文件过期就会失败。
 
@@ -221,7 +228,7 @@ npm run ci       # 与 GitHub Actions 相同的检查（构建 + 验证构建产
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | 默认显示置信度徽章 |
 | `THRESHOLD` | 4 | `src/constants.js` | 标记评论为机器人的最低分数 |
 | `EXACT_MATCHES` | `SAWS.PW`、… | `src/constants.js` | 立即标记昵称的子串 |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | 遗漏 DOM 变更时的备用定时器 |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | 遗漏 DOM 变更时的备用定时器 |
 
 ## 参与贡献
 

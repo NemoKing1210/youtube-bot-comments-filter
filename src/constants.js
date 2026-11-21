@@ -1,6 +1,3 @@
-import pkg from '../package.json' with { type: 'json' };
-
-export const SCRIPT_VERSION = pkg.version;
 export const ROOT_ATTR = 'data-ytbf-root';
 
 export const STORAGE_KEY_MODE = 'ytbf_mode'; // 'hide' | 'blur'
@@ -10,7 +7,6 @@ export const STORAGE_KEY_SHOW_SCORE = 'ytbf_show_score';
 export const DEFAULT_SHOW_SCORE = false;
 
 export const HIDDEN_NOTICE_CLASS = 'ytbf-hidden-notice';
-export const PROCESSED_ATTR = 'data-ytbf-processed';
 export const COMMENT_SELECTOR = 'ytd-comment-view-model, ytd-comment-renderer';
 
 export const THRESHOLD = 4;
@@ -18,7 +14,7 @@ export const THRESHOLD = 4;
 export const PERCENT_SCORE_CAP = THRESHOLD + 2;
 export const SCORE_BADGE_MIN_PERCENT = 50;
 
-export const SAFETY_RESCAN_MS = 2000;
+export const SAFETY_RESCAN_MS = 5000;
 
 export const ACCOUNT_MENU_SELECTOR =
   'ytd-multi-page-menu-renderer[menu-style="multi-page-menu-style-type-system"]';

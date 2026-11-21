@@ -10,7 +10,7 @@
 // @name:ar            YouTube Bot Comments Filter — فلتر تعليقات الروبوت
 // @name:hi            YouTube Bot Comments Filter — बॉट टिप्पणी फ़िल्टर
 // @namespace          https://github.com/NemoKing1210/youtube-bot-comments-filter
-// @version            1.3.0
+// @version            1.3.1
 // @author             NemoKing1210
 // @description        Hides or blurs bot comments on YouTube (nickname pattern detection) with settings in the account menu. Multilingual UI.
 // @description:ru     Скрывает или размывает бот-комментарии на YouTube (детекция по нику) с настройками в меню аккаунта. Мультиязычный UI.
@@ -23,13 +23,13 @@
 // @description:ar     يخفي أو يموّه تعليقات الروبوت على YouTube (كشف بالاسم) مع الإعدادات في قائمة الحساب. واجهة متعددة اللغات.
 // @description:hi     YouTube पर बॉट टिप्पणियों को छिपाता या धुंधला करता है (उपनाम पैटर्न), सेटिंग्स खाता मेनू में। बहुभाषी UI।
 // @license            MIT
-// @icon               https://www.youtube.com/s/desktop/0715bbf9/img/favicon_96x96.png
+// @icon               https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/assets/icon.svg
 // @homepage           https://github.com/NemoKing1210/youtube-bot-comments-filter
 // @homepageURL        https://github.com/NemoKing1210/youtube-bot-comments-filter
 // @source             https://github.com/NemoKing1210/youtube-bot-comments-filter.git
 // @supportURL         https://github.com/NemoKing1210/youtube-bot-comments-filter/issues
 // @downloadURL        https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js
-// @updateURL          https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js
+// @updateURL          https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.meta.js
 // @match              https://www.youtube.com/*
 // @tag                youtube
 // @tag                comments

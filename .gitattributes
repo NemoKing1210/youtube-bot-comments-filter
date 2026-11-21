@@ -1,2 +1,2 @@
-*.user.js linguist-language=JavaScript
-*.meta.js linguist-language=JavaScript
+*.user.js linguist-language=JavaScript linguist-generated=true
+*.meta.js linguist-language=JavaScript linguist-generated=true

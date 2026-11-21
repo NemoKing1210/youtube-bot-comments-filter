@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Установить userscript](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![Лицензия: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Версия](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Пользовательский скрипт для YouTube, который находит спам-комментарии ботов по шаблону ника и скрывает или размывает их. Настройки находятся в меню аккаунта (аватара) YouTube — откройте **Фильтр ботов** и выберите **Скрывать бот-комментарии** или **Размывать бот-комментарии**.
 
@@ -46,7 +46,7 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 
 ## Обновления
 
-Скрипт содержит метаданные `@updateURL` и `@downloadURL`, указывающие на raw-файл в GitHub. Поддерживаемые менеджеры проверяют обновления автоматически.
+Скрипт содержит метаданные `@updateURL` (лёгкий `.meta.js`) и `@downloadURL` (полный `.user.js`). Поддерживаемые менеджеры проверяют обновления автоматически.
 
 **Чтобы выпустить новую версию:**
 
@@ -119,6 +119,9 @@ MutationObserver + периодическая перепроверка (безо
 | Доменный префикс со спам-TLD | 3 | `@SAWS.PW__...`, `@TLES.TOP-...` |
 | Разделитель сразу после TLD | 2 | `.PW__`, `.TOP-` |
 | Транслитерированные спам-ключевые слова | 3 | `tyt_ha`, `na_caut`, `smotri`, `4ki_na` |
+| Буквы и цифры перед спам-TLD | 2 | `FK59.TOP` |
+| TLD, за которым идёт транслит-хвост | 3 | `.TOP_Haxodui_caut_73` |
+| Числовой суффикс в конце | 1 | `_73`, `_05` |
 | Много подчёркиваний | 1 | три или более `_` в имени |
 | Литспик-цифра в слове | 1 | `Sy4ki`, `CauT0` |
 | Префикс в верхнем регистре с точкой | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ MutationObserver + периодическая перепроверка (безо
 
 ### Динамический контент
 
-YouTube загружает комментарии асинхронно (бесконечная прокрутка, ответы, навигация без полной перезагрузки). `MutationObserver` на `document.documentElement` планирует отложенные проходы через `requestAnimationFrame`. Страховочный интервал в 2 секунды ловит пропущенные мутации.
+YouTube загружает комментарии асинхронно (бесконечная прокрутка, ответы, навигация без полной перезагрузки). `MutationObserver` на `document.documentElement` обрабатывает только новые поддеревья комментариев, а слушатель `yt-navigate-finish` запускает полный проход после SPA-навигации. Страховочный интервал в 5 секунд ловит то, что наблюдатель не видит.
 
 ## Структура репозитория
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # Юнит-тесты (node:test)
+├── assets/
+│   └── icon.svg                              # Иконка userscript-а
 ├── scripts/                                  # Вспомогательные скрипты сборки
 ├── youtube-bot-comments-filter.user.js       # Собранный устанавливаемый userscript
 ├── youtube-bot-comments-filter.meta.js       # Собранное зеркало только с метаданными
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | Файл | Назначение |
 |------|------------|
 | `src/` | Редактируемые исходные модули |
-| `youtube-bot-comments-filter.user.js` | Собранный скрипт, отдаваемый по `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.user.js` | Собранный устанавливаемый скрипт, отдаваемый по `@downloadURL` |
 | `youtube-bot-comments-filter.meta.js` | Лёгкое зеркало метаданных для проверки обновлений |
 | `vite.config.js` | Метаданные userscript-а + конфигурация Vite / monkey |
 
@@ -172,7 +178,7 @@ youtube-bot-comments-filter/
 |------|----------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | Из `package.json` |
-| `@updateURL` / `@downloadURL` | Raw-URL GitHub файла `youtube-bot-comments-filter.user.js` |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | Этот репозиторий |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ youtube-bot-comments-filter/
 
 ```bash
 npm install
+npm test         # Юнит-тесты (node:test)
 npm run dev      # Vite serve — откройте/установите сгенерированный userscript "dev:"
 npm run build    # Production → dist/ + копирование в корень репозитория
 npm run ci       # Те же проверки, что и в GitHub Actions (сборка + проверка артефактов)
 ```
 
-Редактируйте файлы в [`src/`](src/) (точка входа: [`src/main.js`](src/main.js)). Метаданные userscript-а (`@match`, локализованные имена, …) находятся в [`vite.config.js`](vite.config.js). Версия берётся из `package.json` → `@version` в заголовке и `SCRIPT_VERSION` в скрипте.
+Редактируйте файлы в [`src/`](src/) (точка входа: [`src/main.js`](src/main.js)). Метаданные userscript-а (`@match`, локализованные имена, …) находятся в [`vite.config.js`](vite.config.js). Версия берётся из `package.json` → `@version` в заголовке.
 
 После изменений, которые должны попасть в релиз, выполните `npm run build` и закоммитьте перегенерированные корневые `.user.js` / `.meta.js`. В pull request запускается [CI](.github/workflows/ci.yml), который падает, если эти файлы устарели.
 
@@ -221,7 +228,7 @@ npm run ci       # Те же проверки, что и в GitHub Actions (сб
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | Показывать бейджи уверенности по умолчанию |
 | `THRESHOLD` | 4 | `src/constants.js` | Минимальный балл бота для пометки комментария |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Подстроки, мгновенно помечающие ник |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Резервный таймер на случай пропущенной мутации |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | Резервный таймер на случай пропущенной мутации |
 
 ## Участие в проекте
 

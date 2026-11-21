@@ -1,12 +1,14 @@
 import {
   COMMENT_SELECTOR,
   HIDDEN_NOTICE_CLASS,
-  PROCESSED_ATTR,
   SCORE_BADGE_MIN_PERCENT,
 } from '../constants.js';
 import { BotDetector, scoreLevel } from '../detection/bot-detector.js';
 import { t } from '../i18n/index.js';
 import { getMode, getShowScoreBadge } from '../settings.js';
+import { createProcessedTracker } from './processed-tracker.js';
+
+const processed = createProcessedTracker();
 
 function shouldShowScoreBadge(percent) {
   return getShowScoreBadge() && percent > SCORE_BADGE_MIN_PERCENT;
@@ -129,13 +131,16 @@ function clearModeClass(commentEl) {
   removeHiddenNotice(commentEl);
 }
 
-function processComment(commentEl) {
+export function processComment(commentEl) {
   const author = getAuthorName(commentEl);
-  const { total } = BotDetector.score(author);
+  // YouTube may mount the comment shell before #author-text is filled in.
+  // Leave it unprocessed so the next pass retries instead of scoring ''.
+  if (!processed.shouldProcess(commentEl, author)) return;
+
+  const total = BotDetector.scoreTotal(author);
   const bot = total >= BotDetector.threshold;
   const percent = BotDetector.confidencePercent(total);
 
-  commentEl.setAttribute(PROCESSED_ATTR, '1');
   commentEl.dataset.ytbfBot = bot ? '1' : '0';
   commentEl.dataset.ytbfPercent = String(percent);
 
@@ -152,9 +157,19 @@ function processComment(commentEl) {
   }
 }
 
-/** Process only newly-added (unprocessed) comments — used on every mutation. */
+/** Process one added element and its comment descendants. */
+export function processCommentNode(node) {
+  if (!node || node.nodeType !== Node.ELEMENT_NODE) return;
+  // A late #author-text arrives as a child mutation, not as a new comment.
+  const host = node.closest?.(COMMENT_SELECTOR);
+  if (host) processComment(host);
+  if (node.matches(COMMENT_SELECTOR)) processComment(node);
+  processNewComments(node);
+}
+
+/** Process comments in a subtree (whole document by default). */
 export function processNewComments(root = document) {
-  root.querySelectorAll(`${COMMENT_SELECTOR}:not([${PROCESSED_ATTR}])`).forEach(processComment);
+  root.querySelectorAll(COMMENT_SELECTOR).forEach(processComment);
 }
 
 /**
@@ -175,7 +190,7 @@ export function reapplyModeToFlaggedComments() {
 
 /** Show or remove score badges after the user toggles the setting. */
 export function reapplyScoreBadges() {
-  document.querySelectorAll(`${COMMENT_SELECTOR}[${PROCESSED_ATTR}]`).forEach((commentEl) => {
+  document.querySelectorAll(`${COMMENT_SELECTOR}[data-ytbf-percent]`).forEach((commentEl) => {
     const percent = Number(commentEl.dataset.ytbfPercent) || 0;
     if (shouldShowScoreBadge(percent)) {
       ensureScoreBadge(commentEl, percent);

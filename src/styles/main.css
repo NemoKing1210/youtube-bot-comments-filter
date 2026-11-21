@@ -23,38 +23,63 @@
 }
 
 /* Blur comment body + nickname; keep only the score badge sharp. */
-.ytbf-blur #author-thumbnail,
-.ytbf-blur #author-text,
-.ytbf-blur #name,
-.ytbf-blur #published-time-text,
-.ytbf-blur #sponsor-comment-badge,
-.ytbf-blur #header-author > :not(.ytbf-bot-score),
-.ytbf-blur #content-text,
-.ytbf-blur #comment-content,
-.ytbf-blur #expander,
-.ytbf-blur #toolbar,
-.ytbf-blur #action-buttons,
-.ytbf-blur ytd-comment-engagement-bar,
-.ytbf-blur #replies {
+.ytbf-blur :is(
+  #author-thumbnail,
+  #author-text,
+  #name,
+  #published-time-text,
+  #sponsor-comment-badge,
+  #header-author > :not(.ytbf-bot-score),
+  #content-text,
+  #comment-content,
+  #expander,
+  #toolbar,
+  #action-buttons,
+  ytd-comment-engagement-bar,
+  #replies
+) {
   filter: blur(7px) grayscale(1);
   opacity: 0.35;
   transition: filter 0.25s ease, opacity 0.25s ease;
 }
-.ytbf-blur:hover #author-thumbnail,
-.ytbf-blur:hover #author-text,
-.ytbf-blur:hover #name,
-.ytbf-blur:hover #published-time-text,
-.ytbf-blur:hover #sponsor-comment-badge,
-.ytbf-blur:hover #header-author > :not(.ytbf-bot-score),
-.ytbf-blur:hover #content-text,
-.ytbf-blur:hover #comment-content,
-.ytbf-blur:hover #expander,
-.ytbf-blur:hover #toolbar,
-.ytbf-blur:hover #action-buttons,
-.ytbf-blur:hover ytd-comment-engagement-bar,
-.ytbf-blur:hover #replies {
+
+.ytbf-blur:hover :is(
+  #author-thumbnail,
+  #author-text,
+  #name,
+  #published-time-text,
+  #sponsor-comment-badge,
+  #header-author > :not(.ytbf-bot-score),
+  #content-text,
+  #comment-content,
+  #expander,
+  #toolbar,
+  #action-buttons,
+  ytd-comment-engagement-bar,
+  #replies
+) {
   filter: blur(0) grayscale(0);
   opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ytbf-blur :is(
+    #author-thumbnail,
+    #author-text,
+    #name,
+    #published-time-text,
+    #sponsor-comment-badge,
+    #header-author > :not(.ytbf-bot-score),
+    #content-text,
+    #comment-content,
+    #expander,
+    #toolbar,
+    #action-buttons,
+    ytd-comment-engagement-bar,
+    #replies
+  ) {
+    transition: none;
+  }
 }
 
 .ytbf-blur .ytbf-bot-score {

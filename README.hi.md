@@ -7,7 +7,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![यूज़रस्क्रिप्ट इंस्टॉल करें](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![लाइसेंस: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![संस्करण](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![संस्करण](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 YouTube के लिए एक यूज़रस्क्रिप्ट जो निकनेम पैटर्न के आधार पर स्पैम बॉट टिप्पणियों को पहचानती है और उन्हें छिपाती या धुंधली करती है। सेटिंग्स YouTube के खाता (अवतार) मेनू में हैं — **बॉट फ़िल्टर** खोलें और **छिपाएँ** या **धुंधला करें** चुनें।
 
@@ -46,7 +46,7 @@ https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/
 
 ## अपडेट
 
-स्क्रिप्ट में GitHub की raw फ़ाइल की ओर इशारा करने वाले `@updateURL` और `@downloadURL` मेटाडेटा शामिल हैं। समर्थित मैनेजर अपडेट अपने आप जाँचते हैं।
+स्क्रिप्ट में `@updateURL` (हल्का `.meta.js`) और `@downloadURL` (पूरा `.user.js`) मेटाडेटा शामिल है। समर्थित मैनेजर अपडेट अपने आप जाँचते हैं।
 
 **नया संस्करण जारी करने के लिए:**
 
@@ -119,6 +119,9 @@ BotDetector नियम चलाएँ → भार जोड़ें
 | स्पैम TLD वाला डोमेन-जैसा प्रीफ़िक्स | 3 | `@SAWS.PW__...`, `@TLES.TOP-...` |
 | TLD के तुरंत बाद विभाजक | 2 | `.PW__`, `.TOP-` |
 | ट्रांसलिटरेटेड स्पैम कीवर्ड | 3 | `tyt_ha`, `na_caut`, `smotri`, `4ki_na` |
+| स्पैम TLD से पहले अक्षर और अंक | 2 | `FK59.TOP` |
+| TLD के बाद ट्रांसलिटरेटेड स्पैम टेल | 3 | `.TOP_Haxodui_caut_73` |
+| अंत में संख्यात्मक सफ़िक्स | 1 | `_73`, `_05` |
 | बहुत सारे अंडरस्कोर | 1 | नाम में तीन या अधिक `_` |
 | शब्द में leetspeak अंक | 1 | `Sy4ki`, `CauT0` |
 | बिंदु के साथ अपरकेस प्रीफ़िक्स | 1 | `@SAWS.PW` |
@@ -130,7 +133,7 @@ BotDetector नियम चलाएँ → भार जोड़ें
 
 ### गतिशील सामग्री
 
-YouTube टिप्पणियाँ अतुल्यकालिक रूप से लोड करता है (अनंत स्क्रॉल, उत्तर, बिना पूर्ण रीलोड के नेविगेशन)। `document.documentElement` पर `MutationObserver` `requestAnimationFrame` के माध्यम से विलंबित पास शेड्यूल करता है। 2 सेकंड का सुरक्षा अंतराल छूटे हुए बदलावों को पकड़ता है।
+YouTube टिप्पणियाँ अतुल्यकालिक रूप से लोड करता है (अनंत स्क्रॉल, उत्तर, बिना पूर्ण रीलोड के नेविगेशन)। `document.documentElement` पर `MutationObserver` केवल नए जोड़े गए टिप्पणी सबट्री को संसाधित करता है, और `yt-navigate-finish` लिसनर SPA नेविगेशन के बाद पूरा पास चलाता है। 5 सेकंड का सुरक्षा अंतराल वह पकड़ता है जो ऑब्ज़र्वर नहीं देख सकता।
 
 ## रिपॉज़िटरी संरचना
 
@@ -144,6 +147,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # यूनिट टेस्ट (node:test)
+├── assets/
+│   └── icon.svg                              # यूज़रस्क्रिप्ट आइकन
 ├── scripts/                                  # बिल्ड सहायक स्क्रिप्ट
 ├── youtube-bot-comments-filter.user.js       # बना हुआ इंस्टॉल-योग्य यूज़रस्क्रिप्ट
 ├── youtube-bot-comments-filter.meta.js       # बना हुआ केवल-मेटाडेटा मिरर
@@ -160,7 +166,7 @@ youtube-bot-comments-filter/
 | फ़ाइल | उद्देश्य |
 |-------|----------|
 | `src/` | संपादन-योग्य स्रोत मॉड्यूल |
-| `youtube-bot-comments-filter.user.js` | `@downloadURL` / `@updateURL` पर परोसी जाने वाली बनी हुई स्क्रिप्ट |
+| `youtube-bot-comments-filter.user.js` | `@downloadURL` पर परोसी जाने वाली बनी हुई इंस्टॉल-योग्य स्क्रिप्ट |
 | `youtube-bot-comments-filter.meta.js` | अपडेट जाँच के लिए हल्का मेटाडेटा मिरर |
 | `vite.config.js` | यूज़रस्क्रिप्ट मेटाडेटा + Vite / monkey कॉन्फ़िगरेशन |
 
@@ -172,7 +178,7 @@ youtube-bot-comments-filter/
 |--------|-----|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | `package.json` से |
-| `@updateURL` / `@downloadURL` | `youtube-bot-comments-filter.user.js` का GitHub raw URL |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | यह रिपॉज़िटरी |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -196,12 +202,13 @@ en, ru, es, fr, de, pt-BR, zh-CN, ja, ar और hi के लिए स्था
 
 ```bash
 npm install
+npm test         # यूनिट टेस्ट (node:test)
 npm run dev      # Vite सर्वर — बनी हुई "dev:" यूज़रस्क्रिप्ट खोलें/इंस्टॉल करें
 npm run build    # प्रोडक्शन → dist/ + रिपॉज़िटरी रूट में कॉपी
 npm run ci       # GitHub Actions जैसी ही जाँच (बिल्ड + आर्टिफ़ैक्ट सत्यापन)
 ```
 
-[`src/`](src/) के अंतर्गत फ़ाइलें संपादित करें (प्रवेश बिंदु: [`src/main.js`](src/main.js))। यूज़रस्क्रिप्ट मेटाडेटा (`@match`, स्थानीयकृत नाम, …) [`vite.config.js`](vite.config.js) में है। संस्करण `package.json` → हेडर में `@version` और स्क्रिप्ट में `SCRIPT_VERSION` से आता है।
+[`src/`](src/) के अंतर्गत फ़ाइलें संपादित करें (प्रवेश बिंदु: [`src/main.js`](src/main.js))। यूज़रस्क्रिप्ट मेटाडेटा (`@match`, स्थानीयकृत नाम, …) [`vite.config.js`](vite.config.js) में है। संस्करण `package.json` → हेडर में `@version` से आता है।
 
 जारी होने वाले बदलावों के बाद `npm run build` चलाएँ और फिर से बनी रूट `.user.js` / `.meta.js` फ़ाइलें कमिट करें। Pull Request पर [CI](.github/workflows/ci.yml) चलता है, जो इन फ़ाइलों के पुराने होने पर विफल हो जाता है।
 
@@ -221,7 +228,7 @@ npm run ci       # GitHub Actions जैसी ही जाँच (बिल्
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | डिफ़ॉल्ट रूप से विश्वास बैज दिखाएँ |
 | `THRESHOLD` | 4 | `src/constants.js` | टिप्पणी को बॉट चिह्नित करने का न्यूनतम स्कोर |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | ऐसे सबस्ट्रिंग जो निकनेम को तुरंत चिह्नित करते हैं |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | छूटे बदलाव के लिए बैकअप टाइमर |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | छूटे बदलाव के लिए बैकअप टाइमर |
 
 ## योगदान
 

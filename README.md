@@ -5,7 +5,7 @@
 [![CI](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml/badge.svg)](https://github.com/NemoKing1210/youtube-bot-comments-filter/actions/workflows/ci.yml)
 [![Install userscript](https://img.shields.io/badge/Install-userscript-ff0000?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/youtube-bot-comments-filter/main/youtube-bot-comments-filter.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.1-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for YouTube that detects spam bot comments by nickname pattern and hides or blurs them. Settings live in the YouTube account (avatar) menu — open **Bot filter** and choose **hide** or **blur**.
 
@@ -44,7 +44,7 @@ Paste the [install URL](#quick-install) above.
 
 ## Updates
 
-The script includes `@updateURL` and `@downloadURL` metadata pointing to the raw GitHub file. Supported managers check for updates automatically.
+The script includes `@updateURL` (the lightweight `.meta.js`) and `@downloadURL` (the full `.user.js`) metadata. Supported managers check for updates automatically.
 
 **To release a new version:**
 
@@ -117,6 +117,9 @@ Built-in signals include:
 | Domain-like prefix with spam TLD | 3 | `@SAWS.PW__...`, `@TLES.TOP-...` |
 | Separator right after TLD | 2 | `.PW__`, `.TOP-` |
 | Transliterated spam keywords | 3 | `tyt_ha`, `na_caut`, `smotri`, `4ki_na` |
+| Letters and digits before a spam TLD | 2 | `FK59.TOP` |
+| TLD followed by a translit spam tail | 3 | `.TOP_Haxodui_caut_73` |
+| Trailing numeric suffix | 1 | `_73`, `_05` |
 | Many underscores | 1 | three or more `_` in the name |
 | Leetspeak digit in word | 1 | `Sy4ki`, `CauT0` |
 | ALLCAPS prefix with dot | 1 | `@SAWS.PW` |
@@ -128,7 +131,7 @@ To extend detection, edit `EXACT_MATCHES` / `SPAM_TLDS` in [`src/constants.js`](
 
 ### Dynamic content
 
-YouTube loads comments asynchronously (infinite scroll, replies, navigation without full reload). A `MutationObserver` on `document.documentElement` schedules debounced passes via `requestAnimationFrame`. A 2-second safety interval catches any missed mutations.
+YouTube loads comments asynchronously (infinite scroll, replies, navigation without full reload). A `MutationObserver` on `document.documentElement` processes only newly added comment subtrees, and a `yt-navigate-finish` listener triggers a full pass after SPA navigation. A 5-second safety interval catches anything the observer cannot see.
 
 ## Repository layout
 
@@ -142,6 +145,9 @@ youtube-bot-comments-filter/
 │   ├── detection/
 │   ├── styles/
 │   └── features/
+├── test/                                     # Unit tests (node:test)
+├── assets/
+│   └── icon.svg                              # Userscript icon
 ├── scripts/                                  # Build helpers
 ├── youtube-bot-comments-filter.user.js       # Built installable userscript
 ├── youtube-bot-comments-filter.meta.js       # Built metadata-only mirror
@@ -158,7 +164,7 @@ youtube-bot-comments-filter/
 | File | Purpose |
 |------|---------|
 | `src/` | Editable source modules |
-| `youtube-bot-comments-filter.user.js` | Built script served at `@downloadURL` / `@updateURL` |
+| `youtube-bot-comments-filter.user.js` | Built installable script served at `@downloadURL` |
 | `youtube-bot-comments-filter.meta.js` | Lightweight metadata mirror for update checks |
 | `vite.config.js` | Userscript metadata + Vite / monkey config |
 
@@ -170,7 +176,7 @@ Key `// ==UserScript==` fields (generated from `vite.config.js` + `package.json`
 |-------|-------|
 | `@namespace` | `https://github.com/NemoKing1210/youtube-bot-comments-filter` |
 | `@version` | From `package.json` |
-| `@updateURL` / `@downloadURL` | Raw GitHub URL of `youtube-bot-comments-filter.user.js` |
+| `@updateURL` / `@downloadURL` | `@updateURL` → `.meta.js`; `@downloadURL` → `.user.js` |
 | `@homepageURL` | This repository |
 | `@supportURL` | GitHub Issues |
 | `@license` | MIT |
@@ -194,12 +200,13 @@ Requires [Node.js](https://nodejs.org/) 20+ (npm).
 
 ```bash
 npm install
+npm test         # Unit tests (node:test)
 npm run dev      # Vite serve — open/install the generated "dev:" userscript
 npm run build    # Production → dist/ + copy to repo root
 npm run ci       # Same checks as GitHub Actions (build + verify artifacts)
 ```
 
-Edit files under [`src/`](src/) (entry: [`src/main.js`](src/main.js)). Userscript metadata (`@match`, localized names, …) lives in [`vite.config.js`](vite.config.js). Version is `package.json` → header `@version` and in-script `SCRIPT_VERSION`.
+Edit files under [`src/`](src/) (entry: [`src/main.js`](src/main.js)). Userscript metadata (`@match`, localized names, …) lives in [`vite.config.js`](vite.config.js). Version is `package.json` → header `@version`.
 
 After changes that should ship, run `npm run build` and commit the regenerated root `.user.js` / `.meta.js`. Pull requests run [CI](.github/workflows/ci.yml), which fails if those files are out of date.
 
@@ -219,7 +226,7 @@ After changes that should ship, run `npm run build` and commit the regenerated r
 | `DEFAULT_SHOW_SCORE` | `false` | `src/constants.js` | Show confidence badges by default |
 | `THRESHOLD` | 4 | `src/constants.js` | Minimum bot score to flag a comment |
 | `EXACT_MATCHES` | `SAWS.PW`, … | `src/constants.js` | Substrings that instantly flag a nickname |
-| `SAFETY_RESCAN_MS` | 2000 | `src/constants.js` | Fallback timer if a mutation is missed |
+| `SAFETY_RESCAN_MS` | 5000 | `src/constants.js` | Fallback timer if a mutation is missed |
 
 ## Contributing
 

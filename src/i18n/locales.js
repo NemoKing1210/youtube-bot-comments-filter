@@ -2,7 +2,6 @@ export const LOCALES = {
   en: {
     hide: 'Bots: hidden',
     blur: 'Bots: blurred',
-    tooltip: 'Bot filter settings',
     menuTitle: 'Bot filter',
     back: 'Back',
     hideOption: 'Hide bot comments',
@@ -15,7 +14,6 @@ export const LOCALES = {
   ru: {
     hide: 'Боты: скрыты',
     blur: 'Боты: размыты',
-    tooltip: 'Настройки фильтра ботов',
     menuTitle: 'Фильтр ботов',
     back: 'Назад',
     hideOption: 'Скрывать бот-комментарии',
@@ -28,7 +26,6 @@ export const LOCALES = {
   es: {
     hide: 'Bots: ocultos',
     blur: 'Bots: difuminados',
-    tooltip: 'Ajustes del filtro de bots',
     menuTitle: 'Filtro de bots',
     back: 'Atrás',
     hideOption: 'Ocultar comentarios de bots',
@@ -41,7 +38,6 @@ export const LOCALES = {
   fr: {
     hide: 'Bots : masqués',
     blur: 'Bots : flous',
-    tooltip: 'Réglages du filtre anti-bots',
     menuTitle: 'Filtre anti-bots',
     back: 'Retour',
     hideOption: 'Masquer les commentaires de bots',
@@ -54,7 +50,6 @@ export const LOCALES = {
   de: {
     hide: 'Bots: ausgeblendet',
     blur: 'Bots: unscharf',
-    tooltip: 'Bot-Filter-Einstellungen',
     menuTitle: 'Bot-Filter',
     back: 'Zurück',
     hideOption: 'Bot-Kommentare ausblenden',
@@ -67,7 +62,6 @@ export const LOCALES = {
   pt: {
     hide: 'Bots: ocultos',
     blur: 'Bots: desfocados',
-    tooltip: 'Configurações do filtro de bots',
     menuTitle: 'Filtro de bots',
     back: 'Voltar',
     hideOption: 'Ocultar comentários de bots',
@@ -80,7 +74,6 @@ export const LOCALES = {
   zh: {
     hide: '机器人：已隐藏',
     blur: '机器人：已模糊',
-    tooltip: '机器人过滤器设置',
     menuTitle: '机器人过滤器',
     back: '返回',
     hideOption: '隐藏机器人评论',
@@ -93,7 +86,6 @@ export const LOCALES = {
   ja: {
     hide: 'ボット：非表示',
     blur: 'ボット：ぼかし',
-    tooltip: 'ボットフィルター設定',
     menuTitle: 'ボットフィルター',
     back: '戻る',
     hideOption: 'ボットコメントを非表示',
@@ -106,7 +98,6 @@ export const LOCALES = {
   ar: {
     hide: 'الروبوتات: مخفية',
     blur: 'الروبوتات: ضبابية',
-    tooltip: 'إعدادات فلتر الروبوتات',
     menuTitle: 'فلتر الروبوتات',
     back: 'رجوع',
     hideOption: 'إخفاء تعليقات الروبوتات',
@@ -119,7 +110,6 @@ export const LOCALES = {
   hi: {
     hide: 'बॉट: छिपे हुए',
     blur: 'बॉट: धुंधले',
-    tooltip: 'बॉट फ़िल्टर सेटिंग्स',
     menuTitle: 'बॉट फ़िल्टर',
     back: 'वापस',
     hideOption: 'बॉट टिप्पणियाँ छिपाएँ',
